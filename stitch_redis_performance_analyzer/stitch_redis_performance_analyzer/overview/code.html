@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#fbdbd7",
+                        "surface-tint": "#ffb4ab",
+                        "outline-variant": "#5c403c",
+                        "surface-container-lowest": "#190a08",
+                        "primary-container": "#dc2626",
+                        "primary": "#ffb4ab",
+                        "surface-container-highest": "#44302e",
+                        "on-secondary": "#002e6a",
+                        "on-background": "#fbdbd7",
+                        "on-secondary-container": "#e6ecff",
+                        "tertiary-container": "#0078b2",
+                        "background": "#1f0f0d",
+                        "tertiary-fixed-dim": "#90cdff",
+                        "on-primary-fixed-variant": "#93000b",
+                        "on-primary-fixed": "#410002",
+                        "secondary": "#adc6ff",
+                        "outline": "#ac8884",
+                        "surface": "#1f0f0d",
+                        "surface-container-low": "#281715",
+                        "on-tertiary-fixed-variant": "#004b71",
+                        "inverse-primary": "#bf0715",
+                        "on-surface-variant": "#e6bdb8",
+                        "surface-bright": "#493432",
+                        "tertiary-fixed": "#cbe6ff",
+                        "secondary-container": "#0566d9",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#fff6f5",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#44302e",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#690005",
+                        "surface-container": "#2d1b19",
+                        "on-surface": "#fbdbd7",
+                        "tertiary": "#90cdff",
+                        "on-secondary-fixed": "#001a42",
+                        "on-tertiary-container": "#f3f8ff",
+                        "inverse-on-surface": "#3f2c29",
+                        "secondary-fixed": "#d8e2ff",
+                        "primary-fixed": "#ffdad6",
+                        "surface-container-high": "#382523",
+                        "on-tertiary": "#003450",
+                        "on-secondary-fixed-variant": "#004395",
+                        "surface-dim": "#1f0f0d",
+                        "primary-fixed-dim": "#ffb4ab",
+                        "on-tertiary-fixed": "#001e30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "margin-sidebar": "240px",
+                        "unit": "4px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "h1": ["Inter"],
+                        "mono-sm": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "h2": ["Inter"],
+                        "mono-lg": ["JetBrains Mono"],
+                        "mono-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "h1": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "mono-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "h2": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "mono-lg": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "mono-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0F172A;
+            color: #fbdbd7;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .ghost-border {
+            border: 1px solid #334155;
+        }
+        .status-pulse {
+            position: relative;
+        }
+        .status-pulse::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            opacity: 0;
+            animation: pulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- Shell Layout: SideNavBar -->
+<aside class="fixed left-0 top-0 h-full z-40 w-[240px] bg-slate-800 dark:bg-[#1E293B] border-r border-slate-700 dark:border-[#334155] font-inter antialiased tracking-tight text-sm">
+<div class="p-6">
+<h1 class="text-xl font-black text-[#DC2626] uppercase tracking-wider">Redis Insight</h1>
+<p class="text-[10px] text-slate-400 font-mono-sm">v7.2.0-stable</p>
+</div>
+<nav class="mt-4">
+<!-- Active Tab: Overview -->
+<a class="flex items-center text-white border-l-2 border-[#DC2626] bg-slate-700/50 dark:bg-[#2D3748] px-4 py-3 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="flex items-center text-slate-400 dark:text-[#94A3B8] px-4 py-3 hover:bg-slate-700/30 dark:hover:bg-[#334155] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="monitoring">monitoring</span>
+<span>Real-time Monitor</span>
+</a>
+<a class="flex items-center text-slate-400 dark:text-[#94A3B8] px-4 py-3 hover:bg-slate-700/30 dark:hover:bg-[#334155] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="analytics">analytics</span>
+<span>Memory Analysis</span>
+</a>
+<a class="flex items-center text-slate-400 dark:text-[#94A3B8] px-4 py-3 hover:bg-slate-700/30 dark:hover:bg-[#334155] transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span>Configuration</span>
+</a>
+</nav>
+</aside>
+<!-- Shell Layout: TopAppBar -->
+<header class="flex items-center justify-between w-[calc(100%-240px)] ml-[240px] px-6 sticky top-0 z-30 h-14 border-b border-slate-700 dark:border-[#334155] bg-slate-800/95 dark:bg-[#1E293B]/95 backdrop-blur-sm">
+<div class="flex items-center gap-6">
+<span class="font-mono text-xs uppercase tracking-widest text-white font-bold">127.0.0.1:6379</span>
+<span class="font-mono text-xs uppercase tracking-widest text-slate-400">v7.2.4</span>
+<span class="font-mono text-xs uppercase tracking-widest text-slate-400">Up: 14d 2h</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer active:scale-95 hover:text-white transition-colors" data-icon="refresh">refresh</span>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer active:scale-95 hover:text-white transition-colors" data-icon="settings">settings</span>
+<button class="bg-[#dc2626] text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider active:scale-95 transition-transform">Disconnect</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] p-gutter min-h-screen bg-[#0F172A]">
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Quick Instance Summary Card (Span 4) -->
+<div class="col-span-4 bg-[#1E293B] ghost-border p-md flex flex-col gap-sm">
+<div class="flex items-center justify-between">
+<h3 class="font-h2 text-h2 text-on-surface">Instance Node</h3>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500 status-pulse text-emerald-500"></span>
+<span class="font-mono-sm text-mono-sm text-emerald-500">HEALTHY</span>
+</div>
+</div>
+<div class="mt-4 space-y-4">
+<div class="flex justify-between border-b border-[#334155] pb-2">
+<span class="text-on-surface-variant font-body-sm">OS</span>
+<span class="font-mono-md text-mono-md text-white">Linux 5.15.0-67-generic</span>
+</div>
+<div class="flex justify-between border-b border-[#334155] pb-2">
+<span class="text-on-surface-variant font-body-sm">Process ID</span>
+<span class="font-mono-md text-mono-md text-white">12459</span>
+</div>
+<div class="flex justify-between border-b border-[#334155] pb-2">
+<span class="text-on-surface-variant font-body-sm">Role</span>
+<span class="font-mono-md text-mono-md text-white">Master</span>
+</div>
+<div class="flex justify-between">
+<span class="text-on-surface-variant font-body-sm">Arch</span>
+<span class="font-mono-md text-mono-md text-white">x64</span>
+</div>
+</div>
+</div>
+<!-- Key Large Metrics (Span 8) -->
+<div class="col-span-8 grid grid-cols-3 gap-gutter">
+<!-- Connected Clients -->
+<div class="bg-[#1E293B] ghost-border p-md flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-on-surface-variant font-body-sm uppercase tracking-wider">Clients</span>
+<span class="material-symbols-outlined text-[#3B82F6]" data-icon="group">group</span>
+</div>
+<div>
+<div class="font-h1 text-h1 text-white">1,284</div>
+<div class="text-emerald-500 font-mono-sm text-xs mt-1">+12% from peak</div>
+</div>
+</div>
+<!-- Hit Rate -->
+<div class="bg-[#1E293B] ghost-border p-md flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-on-surface-variant font-body-sm uppercase tracking-wider">Hit Rate</span>
+<span class="material-symbols-outlined text-[#DC2626]" data-icon="target">target</span>
+</div>
+<div>
+<div class="font-h1 text-h1 text-white">98.4%</div>
+<div class="text-slate-500 font-mono-sm text-xs mt-1">Keyspace Efficiency</div>
+</div>
+</div>
+<!-- Total Commands -->
+<div class="bg-[#1E293B] ghost-border p-md flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-on-surface-variant font-body-sm uppercase tracking-wider">Total Commands</span>
+<span class="material-symbols-outlined text-[#90cdff]" data-icon="terminal">terminal</span>
+</div>
+<div>
+<div class="font-h1 text-h1 text-white">4.2M</div>
+<div class="text-slate-500 font-mono-sm text-xs mt-1">Since Uptime</div>
+</div>
+</div>
+</div>
+<!-- QPS Chart (Span 8) -->
+<div class="col-span-8 bg-[#1E293B] ghost-border p-md h-[320px] flex flex-col">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-h2 text-h2 text-on-surface">Operations Per Second (QPS)</h3>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-[#334155] text-white text-[10px] font-bold rounded">LIVE</span>
+<span class="px-2 py-1 text-slate-400 text-[10px] font-bold">HISTORICAL</span>
+</div>
+</div>
+<div class="flex-grow relative border-l border-b border-[#334155] flex items-end">
+<!-- SVG Chart Background -->
+<div class="absolute inset-0 grid grid-cols-6 grid-rows-4 pointer-events-none opacity-20">
+<div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-t border-[#334155]"></div>
+<div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-t border-[#334155]"></div>
+<div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-t border-[#334155]"></div>
+<div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-r border-t border-[#334155]"></div><div class="border-t border-[#334155]"></div>
+</div>
+<!-- Simplified Visual for Line Chart -->
+<svg class="w-full h-full stroke-[#DC2626] fill-none stroke-[1.5]" viewbox="0 0 800 200">
+<path d="M0 180 L50 160 L100 170 L150 120 L200 130 L250 80 L300 90 L350 40 L400 60 L450 70 L500 50 L550 90 L600 100 L650 40 L700 50 L750 30 L800 45"></path>
+<path class="fill-[#DC2626]/10 stroke-none" d="M0 180 L50 160 L100 170 L150 120 L200 130 L250 80 L300 90 L350 40 L400 60 L450 70 L500 50 L550 90 L600 100 L650 40 L700 50 L750 30 L800 45 L800 200 L0 200 Z"></path>
+</svg>
+</div>
+</div>
+<!-- Memory Gauge (Span 4) -->
+<div class="col-span-4 bg-[#1E293B] ghost-border p-md flex flex-col">
+<h3 class="font-h2 text-h2 text-on-surface mb-lg text-center">Memory Usage</h3>
+<div class="flex-grow flex flex-col items-center justify-center">
+<div class="relative w-48 h-48">
+<!-- Gauge SVG -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#334155" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="45" stroke="#DC2626" stroke-dasharray="282.7" stroke-dashoffset="70" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-h1 text-[32px] text-white">75%</span>
+<span class="font-mono-sm text-xs text-slate-400">1.2GB / 1.6GB</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-[#334155] space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-on-surface-variant">Fragmentation Ratio</span>
+<span class="font-mono-md text-white">1.04</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-on-surface-variant">Peak Memory</span>
+<span class="font-mono-md text-white">1.42 GB</span>
+</div>
+</div>
+</div>
+<!-- Frequent Commands Table (Span 12) -->
+<div class="col-span-12 bg-[#1E293B] ghost-border overflow-hidden">
+<div class="px-md py-sm border-b border-[#334155] bg-[#2D3748]/50 flex justify-between items-center">
+<h3 class="font-mono-md text-white uppercase tracking-widest font-bold">Frequent Commands</h3>
+<span class="text-xs text-slate-400 font-mono-sm">Last 5 Minutes</span>
+</div>
+<table class="w-full text-left font-mono-sm">
+<thead class="bg-[#2D3748]/30 text-slate-400 border-b border-[#334155]">
+<tr>
+<th class="px-md py-sm font-medium uppercase tracking-tighter">Command</th>
+<th class="px-md py-sm font-medium uppercase tracking-tighter">Calls</th>
+<th class="px-md py-sm font-medium uppercase tracking-tighter">Total Time (µs)</th>
+<th class="px-md py-sm font-medium uppercase tracking-tighter">Avg Time (µs)</th>
+<th class="px-md py-sm font-medium uppercase tracking-tighter">Usage %</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#334155]">
+<tr class="hover:bg-[#2D3748] transition-colors group">
+<td class="px-md py-sm text-white font-bold">GET</td>
+<td class="px-md py-sm text-slate-300">842,910</td>
+<td class="px-md py-sm text-slate-300">1,240,551</td>
+<td class="px-md py-sm text-slate-300">1.47</td>
+<td class="px-md py-sm">
+<div class="flex items-center gap-2">
+<div class="w-full bg-[#334155] h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full w-[45%]"></div>
+</div>
+<span class="text-xs text-slate-400">45%</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-[#2D3748] transition-colors">
+<td class="px-md py-sm text-white font-bold">SET</td>
+<td class="px-md py-sm text-slate-300">312,004</td>
+<td class="px-md py-sm text-slate-300">890,200</td>
+<td class="px-md py-sm text-slate-300">2.85</td>
+<td class="px-md py-sm">
+<div class="flex items-center gap-2">
+<div class="w-full bg-[#334155] h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full w-[22%]"></div>
+</div>
+<span class="text-xs text-slate-400">22%</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-[#2D3748] transition-colors">
+<td class="px-md py-sm text-white font-bold">HGETALL</td>
+<td class="px-md py-sm text-slate-300">110,451</td>
+<td class="px-md py-sm text-slate-300">1,450,210</td>
+<td class="px-md py-sm text-slate-300">13.12</td>
+<td class="px-md py-sm">
+<div class="flex items-center gap-2">
+<div class="w-full bg-[#334155] h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full w-[12%]"></div>
+</div>
+<span class="text-xs text-slate-400">12%</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-[#2D3748] transition-colors">
+<td class="px-md py-sm text-white font-bold">EXPIRE</td>
+<td class="px-md py-sm text-slate-300">98,202</td>
+<td class="px-md py-sm text-slate-300">45,100</td>
+<td class="px-md py-sm text-slate-300">0.46</td>
+<td class="px-md py-sm">
+<div class="flex items-center gap-2">
+<div class="w-full bg-[#334155] h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full w-[8%]"></div>
+</div>
+<span class="text-xs text-slate-400">8%</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Footer Visual Decoration -->
+<footer class="mt-xl py-lg flex justify-between items-center border-t border-[#334155] opacity-50">
+<div class="flex items-center gap-2">
+<img alt="Logo" class="w-4 h-4" data-alt="A small, minimalist high-tech logo icon for a database performance tool. The icon features a stylized 'R' in sharp, vibrant red against a deep obsidian background, reflecting a modern software aesthetic. The lighting is crisp and the design is strictly flat, maintaining the technical professionalism of a low-latency database monitor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHCsAIFZtUeVrLQxYXL4WeoZyRRoxWzZ2iE8jutqssvuQmBMsvg0JjzqUXo1EJd9Y-iOygCytjvlyT30-48wDF8CNsmsm8Oid_CprMee4tbEY1lWjMkdJzgwXz_F82CXlgb_6nr7-axVLKxm03_Qg0POQ4GvHgJIfPzDBhSuWia4RzaUvo_4NXVTvB7BUdkxtu4U7lAKHjtOY3ShPIE6_d9mv4AeT0nd-ak4i6p_elOA-O_8b4wW0VDrtdwGTO8XGQACvecAXA1tsQ"/>
+<span class="font-mono-sm text-[10px] uppercase tracking-widest">Redis Performance Monitor Instrumentation v1.4</span>
+</div>
+<div class="font-mono-sm text-[10px] text-slate-400">
+                SYSTEM TIME: 2023-10-27 14:42:01 UTC
+            </div>
+</footer>
+</main>
+</body></html>

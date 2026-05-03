@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#fbdbd7",
+                    "surface-tint": "#ffb4ab",
+                    "outline-variant": "#5c403c",
+                    "surface-container-lowest": "#190a08",
+                    "primary-container": "#dc2626",
+                    "primary": "#ffb4ab",
+                    "surface-container-highest": "#44302e",
+                    "on-secondary": "#002e6a",
+                    "on-background": "#fbdbd7",
+                    "on-secondary-container": "#e6ecff",
+                    "tertiary-container": "#0078b2",
+                    "background": "#1f0f0d",
+                    "tertiary-fixed-dim": "#90cdff",
+                    "on-primary-fixed-variant": "#93000b",
+                    "on-primary-fixed": "#410002",
+                    "secondary": "#adc6ff",
+                    "outline": "#ac8884",
+                    "surface": "#1f0f0d",
+                    "surface-container-low": "#281715",
+                    "on-tertiary-fixed-variant": "#004b71",
+                    "inverse-primary": "#bf0715",
+                    "on-surface-variant": "#e6bdb8",
+                    "surface-bright": "#493432",
+                    "tertiary-fixed": "#cbe6ff",
+                    "secondary-container": "#0566d9",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "error-container": "#93000a",
+                    "on-primary-container": "#fff6f5",
+                    "error": "#ffb4ab",
+                    "surface-variant": "#44302e",
+                    "on-error": "#690005",
+                    "on-error-container": "#ffdad6",
+                    "on-primary": "#690005",
+                    "surface-container": "#2d1b19",
+                    "on-surface": "#fbdbd7",
+                    "tertiary": "#90cdff",
+                    "on-secondary-fixed": "#001a42",
+                    "on-tertiary-container": "#f3f8ff",
+                    "inverse-on-surface": "#3f2c29",
+                    "secondary-fixed": "#d8e2ff",
+                    "primary-fixed": "#ffdad6",
+                    "surface-container-high": "#382523",
+                    "on-tertiary": "#003450",
+                    "on-secondary-fixed-variant": "#004395",
+                    "surface-dim": "#1f0f0d",
+                    "primary-fixed-dim": "#ffb4ab",
+                    "on-tertiary-fixed": "#001e30"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "xl": "32px",
+                    "gutter": "16px",
+                    "margin-sidebar": "240px",
+                    "unit": "4px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "h1": ["Inter"],
+                    "mono-sm": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "h2": ["Inter"],
+                    "mono-lg": ["JetBrains Mono"],
+                    "mono-md": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "h1": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "mono-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "h2": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "mono-lg": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                    "mono-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+        .chart-grid { background-image: radial-gradient(#334155 0.5px, transparent 0.5px); background-size: 16px 16px; }
+    </style>
+</head>
+<body class="bg-[#0F172A] text-on-surface font-body-md selection:bg-primary-container selection:text-white">
+<!-- Side Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full z-40 w-[240px] bg-slate-800 dark:bg-[#1E293B] border-r border-slate-700 dark:border-[#334155] font-inter antialiased tracking-tight text-sm">
+<div class="p-6">
+<h1 class="text-xl font-black text-[#DC2626] uppercase tracking-wider">Redis Insight</h1>
+<p class="text-[10px] text-slate-500 font-mono mt-1">v7.2.0-stable</p>
+</div>
+<nav class="mt-4">
+<a class="flex items-center text-slate-400 dark:text-[#94A3B8] px-4 py-3 hover:bg-slate-700/30 dark:hover:bg-[#334155] transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+                Overview
+            </a>
+<a class="flex items-center text-slate-400 dark:text-[#94A3B8] px-4 py-3 hover:bg-slate-700/30 dark:hover:bg-[#334155] transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="monitoring">monitoring</span>
+                Real-time Monitor
+            </a>
+<a class="flex items-center text-white border-l-2 border-[#DC2626] bg-slate-700/50 dark:bg-[#2D3748] px-4 py-3 transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="analytics">analytics</span>
+                Memory Analysis
+            </a>
+<a class="flex items-center text-slate-400 dark:text-[#94A3B8] px-4 py-3 hover:bg-slate-700/30 dark:hover:bg-[#334155] transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+                Configuration
+            </a>
+</nav>
+<div class="absolute bottom-0 w-full p-4 border-t border-[#334155]">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-xs font-bold text-white">DB</div>
+<div class="overflow-hidden">
+<p class="text-xs font-bold text-white truncate">Primary_Cluster_01</p>
+<p class="text-[10px] text-slate-500 truncate">master (6 keyspaces)</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="ml-[240px] min-h-screen">
+<!-- TopAppBar -->
+<header class="h-14 border-b border-slate-700 dark:border-[#334155] bg-slate-800/95 dark:bg-[#1E293B]/95 backdrop-blur-sm flex items-center justify-between w-full px-6 sticky top-0 z-30 font-mono text-xs uppercase tracking-widest text-slate-300">
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="text-white font-bold">127.0.0.1:6379</span>
+</div>
+<span class="text-slate-400 dark:text-[#94A3B8]">v7.2.4</span>
+<span class="text-slate-400 dark:text-[#94A3B8]">Up: 14d 2h</span>
+</div>
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2 border-r border-[#334155] pr-4">
+<span class="material-symbols-outlined cursor-pointer hover:text-white transition-colors" data-icon="refresh">refresh</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-white transition-colors" data-icon="settings">settings</span>
+</div>
+<button class="bg-[#DC2626] text-white px-3 py-1 rounded-sm font-bold active:scale-95 transition-transform">Disconnect</button>
+</div>
+</header>
+<!-- Page Canvas -->
+<main class="p-lg space-y-gutter">
+<!-- Header Section -->
+<section class="flex items-end justify-between">
+<div>
+<h2 class="font-h1 text-h1 text-white">Memory Analysis</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Deep inspection of 4.2GB total resident memory (RSS)</p>
+</div>
+<div class="flex space-x-sm">
+<div class="bg-surface-container px-md py-sm border border-outline-variant flex items-center space-x-sm">
+<span class="font-mono-sm text-mono-sm text-on-surface-variant">FRAGMENTATION:</span>
+<span class="font-mono-sm text-mono-sm text-green-400">1.04x</span>
+</div>
+<div class="bg-surface-container px-md py-sm border border-outline-variant flex items-center space-x-sm">
+<span class="font-mono-sm text-mono-sm text-on-surface-variant">EVICTION POLICY:</span>
+<span class="font-mono-sm text-mono-sm text-white">allkeys-lru</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Tree Map Visualization -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container border border-outline-variant rounded p-md">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-mono-sm text-mono-sm uppercase tracking-tighter text-on-surface-variant">Memory Allocation by Key Prefix</h3>
+<div class="flex space-x-2">
+<span class="text-[10px] text-on-surface-variant uppercase bg-surface-container-high px-2 py-0.5 border border-outline-variant">Scale: Logarithmic</span>
+</div>
+</div>
+<!-- Mock Tree Map -->
+<div class="grid grid-cols-6 grid-rows-3 gap-1 h-[320px]">
+<div class="col-span-3 row-span-2 bg-[#DC2626]/20 border border-[#DC2626]/40 p-sm hover:bg-[#DC2626]/30 transition-colors cursor-pointer group relative">
+<span class="font-mono-sm text-white font-bold block">sess:*</span>
+<span class="font-mono-sm text-[10px] text-white/70">1.8GB (42%)</span>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-sm">
+<span class="font-mono-sm text-white text-[10px]">642,801 keys</span>
+</div>
+</div>
+<div class="col-span-2 row-span-1 bg-tertiary-container/20 border border-tertiary-container/40 p-sm hover:bg-tertiary-container/30 transition-colors cursor-pointer">
+<span class="font-mono-sm text-white font-bold block">cache:prod:*</span>
+<span class="font-mono-sm text-[10px] text-white/70">940MB</span>
+</div>
+<div class="col-span-1 row-span-2 bg-secondary-container/20 border border-secondary-container/40 p-sm hover:bg-secondary-container/30 transition-colors cursor-pointer">
+<span class="font-mono-sm text-white font-bold block">user:*</span>
+<span class="font-mono-sm text-[10px] text-white/70">412MB</span>
+</div>
+<div class="col-span-2 row-span-1 bg-surface-container-highest border border-outline-variant p-sm hover:bg-surface-bright transition-colors cursor-pointer">
+<span class="font-mono-sm text-white font-bold block">idx:meta:*</span>
+<span class="font-mono-sm text-[10px] text-white/70">210MB</span>
+</div>
+<div class="col-span-2 row-span-1 bg-surface-container-high border border-outline-variant p-sm hover:bg-surface-bright transition-colors cursor-pointer">
+<span class="font-mono-sm text-white font-bold block">events:*</span>
+<span class="font-mono-sm text-[10px] text-white/70">156MB</span>
+</div>
+<div class="col-span-4 row-span-1 bg-surface-container-low border border-outline-variant p-sm flex items-center justify-center italic text-on-surface-variant font-mono-sm text-[10px]">
+                            Remaining 1,402 prefixes &lt; 1% each
+                        </div>
+</div>
+</div>
+<!-- Data Type Distribution -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container border border-outline-variant rounded p-md flex flex-col">
+<h3 class="font-mono-sm text-mono-sm uppercase tracking-tighter text-on-surface-variant mb-md">Data Type Distribution</h3>
+<div class="space-y-sm flex-grow">
+<div class="space-y-1">
+<div class="flex justify-between font-mono-sm text-[11px]">
+<span class="text-white">STRING</span>
+<span class="text-on-surface-variant">2.1GB (50%)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5">
+<div class="bg-[#DC2626] h-full" style="width: 50%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-mono-sm text-[11px]">
+<span class="text-white">HASH</span>
+<span class="text-on-surface-variant">1.2GB (28%)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5">
+<div class="bg-tertiary-container h-full" style="width: 28%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-mono-sm text-[11px]">
+<span class="text-white">SET</span>
+<span class="text-on-surface-variant">450MB (11%)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5">
+<div class="bg-secondary-container h-full" style="width: 11%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-mono-sm text-[11px]">
+<span class="text-white">LIST</span>
+<span class="text-on-surface-variant">320MB (8%)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5">
+<div class="bg-surface-tint h-full" style="width: 8%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between font-mono-sm text-[11px]">
+<span class="text-white">ZSET</span>
+<span class="text-on-surface-variant">130MB (3%)</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5">
+<div class="bg-outline-variant h-full" style="width: 3%"></div>
+</div>
+</div>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant">
+<button class="w-full text-center font-mono-sm text-primary text-[11px] uppercase tracking-widest hover:underline">Download CSV Report</button>
+</div>
+</div>
+<!-- Big Keys Report Table -->
+<div class="col-span-12 bg-surface-container border border-outline-variant rounded overflow-hidden">
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-high">
+<div class="flex items-center space-x-sm">
+<span class="material-symbols-outlined text-primary-container" data-icon="report_problem">report_problem</span>
+<h3 class="font-h2 text-h2 text-white">Big Keys Report</h3>
+</div>
+<div class="flex space-x-sm">
+<div class="relative">
+<input class="bg-[#0F172A] border border-outline-variant px-sm py-1 text-mono-sm text-white focus:ring-1 focus:ring-tertiary-container focus:outline-none w-64" placeholder="Filter by pattern..." type="text"/>
+</div>
+<button class="bg-surface-container-highest border border-outline-variant px-3 py-1 flex items-center space-x-2 hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span>
+<span class="font-mono-sm text-[11px]">SORT BY SIZE</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-highest border-b border-outline-variant font-mono-sm text-[10px] text-on-surface-variant uppercase tracking-widest">
+<th class="p-md font-medium">Key Name</th>
+<th class="p-md font-medium">Type</th>
+<th class="p-md font-medium">Encoding</th>
+<th class="p-md font-medium text-right">Elements</th>
+<th class="p-md font-medium text-right">Size</th>
+<th class="p-md font-medium text-right">TTL</th>
+<th class="p-md font-medium text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-mono-sm text-body-sm">
+<tr class="hover:bg-[#2D3748] transition-colors group">
+<td class="p-md text-white">sess:prod:u9921:active_tokens</td>
+<td class="p-md"><span class="px-2 py-0.5 rounded-sm bg-surface-container-highest text-white text-[10px] border border-outline-variant">HASH</span></td>
+<td class="p-md text-on-surface-variant">hashtable</td>
+<td class="p-md text-right">1,240,591</td>
+<td class="p-md text-right text-error font-bold">142.4 MB</td>
+<td class="p-md text-right text-on-surface-variant">24h 12m</td>
+<td class="p-md text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="visibility">visibility</span></button>
+<button class="text-on-surface-variant hover:text-primary-container transition-colors ml-2"><span class="material-symbols-outlined" data-icon="delete">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-[#2D3748] transition-colors group">
+<td class="p-md text-white">cache:global:product_catalog_v2</td>
+<td class="p-md"><span class="px-2 py-0.5 rounded-sm bg-surface-container-highest text-white text-[10px] border border-outline-variant">STRING</span></td>
+<td class="p-md text-on-surface-variant">raw</td>
+<td class="p-md text-right">1</td>
+<td class="p-md text-right text-error font-bold">88.1 MB</td>
+<td class="p-md text-right text-on-surface-variant">Persistent</td>
+<td class="p-md text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="visibility">visibility</span></button>
+<button class="text-on-surface-variant hover:text-primary-container transition-colors ml-2"><span class="material-symbols-outlined" data-icon="delete">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-[#2D3748] transition-colors group">
+<td class="p-md text-white">idx:users:location_geo</td>
+<td class="p-md"><span class="px-2 py-0.5 rounded-sm bg-surface-container-highest text-white text-[10px] border border-outline-variant">ZSET</span></td>
+<td class="p-md text-on-surface-variant">skiplist</td>
+<td class="p-md text-right">452,000</td>
+<td class="p-md text-right text-primary">32.4 MB</td>
+<td class="p-md text-right text-on-surface-variant">Persistent</td>
+<td class="p-md text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="visibility">visibility</span></button>
+<button class="text-on-surface-variant hover:text-primary-container transition-colors ml-2"><span class="material-symbols-outlined" data-icon="delete">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-[#2D3748] transition-colors group">
+<td class="p-md text-white">queue:ingest:events_buffer</td>
+<td class="p-md"><span class="px-2 py-0.5 rounded-sm bg-surface-container-highest text-white text-[10px] border border-outline-variant">LIST</span></td>
+<td class="p-md text-on-surface-variant">quicklist</td>
+<td class="p-md text-right">88,102</td>
+<td class="p-md text-right text-primary">12.9 MB</td>
+<td class="p-md text-right text-on-surface-variant">5m 30s</td>
+<td class="p-md text-center">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="visibility">visibility</span></button>
+<button class="text-on-surface-variant hover:text-primary-container transition-colors ml-2"><span class="material-symbols-outlined" data-icon="delete">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
+<p class="font-mono-sm text-[10px] text-on-surface-variant uppercase">Showing 1-10 of 4,201 big keys</p>
+<div class="flex space-x-1">
+<button class="px-3 py-1 bg-surface-container border border-outline-variant text-white font-bold hover:bg-surface-bright disabled:opacity-50" disabled="">PREV</button>
+<button class="px-3 py-1 bg-surface-container border border-outline-variant text-white font-bold hover:bg-surface-bright">NEXT</button>
+</div>
+</div>
+</div>
+<!-- Analysis Summary Cards -->
+<div class="col-span-12 md:col-span-4 bg-surface-container border border-outline-variant rounded p-md flex items-center space-x-md">
+<div class="w-12 h-12 bg-primary-container/10 flex items-center justify-center border border-primary-container/30">
+<span class="material-symbols-outlined text-primary-container" data-icon="speed">speed</span>
+</div>
+<div>
+<p class="font-mono-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Memory Efficiency</p>
+<p class="font-h1 text-h1 text-white">92.4%</p>
+</div>
+</div>
+<div class="col-span-12 md:col-span-4 bg-surface-container border border-outline-variant rounded p-md flex items-center space-x-md">
+<div class="w-12 h-12 bg-tertiary-container/10 flex items-center justify-center border border-tertiary-container/30">
+<span class="material-symbols-outlined text-tertiary-container" data-icon="schedule">schedule</span>
+</div>
+<div>
+<p class="font-mono-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Expiry Coverage</p>
+<p class="font-h1 text-h1 text-white">64.1%</p>
+</div>
+</div>
+<div class="col-span-12 md:col-span-4 bg-surface-container border border-outline-variant rounded p-md flex items-center space-x-md">
+<div class="w-12 h-12 bg-secondary-container/10 flex items-center justify-center border border-secondary-container/30">
+<span class="material-symbols-outlined text-secondary-container" data-icon="database">database</span>
+</div>
+<div>
+<p class="font-mono-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Avg Key Size</p>
+<p class="font-h1 text-h1 text-white">4.12 KB</p>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<footer class="flex justify-between items-center pt-xl text-on-surface-variant font-mono-sm text-[10px] uppercase">
+<p>Last scanned: 2023-11-24 14:02:11 UTC (Scan took 4.1s)</p>
+<div class="flex items-center space-x-md">
+<span class="flex items-center"><span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>Critical (&gt;50MB)</span>
+<span class="flex items-center"><span class="w-2 h-2 bg-tertiary-container rounded-full mr-2"></span>Warning (&gt;10MB)</span>
+</div>
+</footer>
+</main>
+</div>
+<!-- Background Decorative Element -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.03] chart-grid -z-10"></div>
+</body></html>

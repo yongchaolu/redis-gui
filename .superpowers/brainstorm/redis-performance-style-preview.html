@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redis 性能分析工具 - 样式预览</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            coal: '#0b1014',
+            panel: '#111922',
+            panel2: '#172331',
+            ink: '#d8e3ea',
+            mute: '#7f92a3',
+            redis: '#d93f32',
+            cyanx: '#40d7ff',
+            amberx: '#ffbd5a',
+            greenx: '#74f0a7'
+          },
+          boxShadow: {
+            glow: '0 0 36px rgba(64, 215, 255, .16)',
+            danger: '0 0 34px rgba(217, 63, 50, .20)'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-coal text-ink antialiased">
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute -left-32 top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-redis/20 blur-3xl"></div>
+    <div class="absolute right-[-12rem] top-28 h-[36rem] w-[36rem] rounded-full bg-cyanx/10 blur-3xl"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:42px_42px] opacity-30"></div>
+  </div>
+
+  <div class="grid min-h-screen grid-cols-[280px_1fr]">
+    <aside class="border-r border-white/10 bg-black/20 px-5 py-6 backdrop-blur-xl">
+      <div class="mb-8 flex items-center gap-3">
+        <div class="grid h-11 w-11 place-items-center rounded-2xl bg-redis shadow-danger">
+          <span class="text-lg font-black tracking-tight text-white">R</span>
+        </div>
+        <div>
+          <div class="text-sm uppercase tracking-[.32em] text-mute">Redis Lens</div>
+          <div class="text-lg font-semibold">性能分析台</div>
+        </div>
+      </div>
+
+      <button class="mb-6 w-full rounded-2xl bg-white px-4 py-3 text-sm font-bold text-coal transition hover:bg-cyanx">
+        + 新建连接
+      </button>
+
+      <div class="space-y-2 text-sm">
+        <div class="rounded-2xl border border-cyanx/30 bg-cyanx/10 px-4 py-3 text-cyanx">总览 Dashboard</div>
+        <div class="rounded-2xl px-4 py-3 text-mute hover:bg-white/5 hover:text-ink">连接管理</div>
+        <div class="rounded-2xl px-4 py-3 text-mute hover:bg-white/5 hover:text-ink">分析报告</div>
+        <div class="rounded-2xl px-4 py-3 text-mute hover:bg-white/5 hover:text-ink">慢查询</div>
+        <div class="rounded-2xl px-4 py-3 text-mute hover:bg-white/5 hover:text-ink">拓扑视图</div>
+      </div>
+
+      <div class="mt-10 rounded-3xl border border-white/10 bg-panel p-4">
+        <div class="mb-3 flex items-center justify-between">
+          <span class="text-xs uppercase tracking-[.22em] text-mute">Active Target</span>
+          <span class="rounded-full bg-greenx/15 px-2 py-1 text-xs text-greenx">Online</span>
+        </div>
+        <div class="font-semibold">prod-cache-cluster</div>
+        <div class="mt-1 text-xs text-mute">6 masters · 6 replicas · Redis 7.2</div>
+      </div>
+    </aside>
+
+    <main class="px-8 py-7">
+      <header class="mb-7 flex items-start justify-between">
+        <div>
+          <div class="mb-2 text-sm uppercase tracking-[.34em] text-mute">Observation-only diagnostics</div>
+          <h1 class="text-4xl font-black tracking-tight">Redis 性能健康分析</h1>
+          <p class="mt-2 max-w-2xl text-sm text-mute">只读采样 INFO、SLOWLOG、LATENCY、CLIENT、CLUSTER，不执行压测，不碰业务数据。</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="rounded-2xl border border-white/10 bg-panel px-4 py-3 text-sm text-ink hover:bg-panel2">导出 HTML</button>
+          <button class="rounded-2xl bg-redis px-5 py-3 text-sm font-bold text-white shadow-danger hover:bg-red-500">运行分析</button>
+        </div>
+      </header>
+
+      <section class="mb-6 grid grid-cols-4 gap-4">
+        <div class="rounded-3xl border border-white/10 bg-panel p-5 shadow-glow">
+          <div class="text-sm text-mute">健康评分</div>
+          <div class="mt-4 flex items-end gap-2">
+            <span class="text-5xl font-black text-greenx">86</span>
+            <span class="pb-2 text-sm text-mute">/100</span>
+          </div>
+          <div class="mt-4 h-2 rounded-full bg-white/10">
+            <div class="h-2 w-[86%] rounded-full bg-greenx"></div>
+          </div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-panel p-5">
+          <div class="text-sm text-mute">P95 延迟</div>
+          <div class="mt-4 text-4xl font-black">3.8ms</div>
+          <div class="mt-3 text-xs text-greenx">比上次报告下降 18%</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-panel p-5">
+          <div class="text-sm text-mute">慢查询</div>
+          <div class="mt-4 text-4xl font-black text-amberx">17</div>
+          <div class="mt-3 text-xs text-mute">最近 24 小时累计</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-panel p-5">
+          <div class="text-sm text-mute">高风险项</div>
+          <div class="mt-4 text-4xl font-black text-redis">3</div>
+          <div class="mt-3 text-xs text-redis">需要优先处理</div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-[1.45fr_.9fr] gap-5">
+        <div class="rounded-[2rem] border border-white/10 bg-panel p-5">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold">集群拓扑</h2>
+              <p class="mt-1 text-sm text-mute">槽位、主从关系、节点状态和热点分片</p>
+            </div>
+            <span class="rounded-full border border-cyanx/30 bg-cyanx/10 px-3 py-1 text-xs text-cyanx">Cluster mode</span>
+          </div>
+
+          <div class="relative h-[390px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/20 p-6">
+            <div class="absolute left-16 top-16 h-20 w-20 rounded-full border border-greenx/40 bg-greenx/10 p-3 shadow-glow">
+              <div class="text-xs text-mute">master</div>
+              <div class="mt-1 font-bold text-greenx">7001</div>
+            </div>
+            <div class="absolute left-56 top-40 h-20 w-20 rounded-full border border-greenx/40 bg-greenx/10 p-3">
+              <div class="text-xs text-mute">master</div>
+              <div class="mt-1 font-bold text-greenx">7002</div>
+            </div>
+            <div class="absolute left-[25rem] top-20 h-20 w-20 rounded-full border border-amberx/50 bg-amberx/10 p-3 shadow-danger">
+              <div class="text-xs text-mute">master</div>
+              <div class="mt-1 font-bold text-amberx">7003</div>
+            </div>
+            <div class="absolute bottom-16 left-32 h-16 w-16 rounded-2xl border border-white/10 bg-panel2 p-3">
+              <div class="text-xs text-mute">replica</div>
+              <div class="font-bold">7011</div>
+            </div>
+            <div class="absolute bottom-24 left-[21rem] h-16 w-16 rounded-2xl border border-white/10 bg-panel2 p-3">
+              <div class="text-xs text-mute">replica</div>
+              <div class="font-bold">7012</div>
+            </div>
+            <div class="absolute bottom-20 right-24 h-16 w-16 rounded-2xl border border-redis/40 bg-redis/10 p-3">
+              <div class="text-xs text-mute">replica</div>
+              <div class="font-bold text-redis">7013</div>
+            </div>
+
+            <svg class="absolute inset-0 h-full w-full opacity-60" viewBox="0 0 800 390" fill="none">
+              <path d="M110 100 C180 140 190 150 255 180" stroke="#40d7ff" stroke-width="2" stroke-dasharray="6 6"/>
+              <path d="M320 175 C390 145 410 120 455 105" stroke="#40d7ff" stroke-width="2" stroke-dasharray="6 6"/>
+              <path d="M115 130 C125 210 145 250 160 300" stroke="#ffffff" stroke-opacity=".25" stroke-width="2"/>
+              <path d="M285 215 C295 250 315 275 350 305" stroke="#ffffff" stroke-opacity=".25" stroke-width="2"/>
+              <path d="M500 135 C560 210 615 245 660 305" stroke="#d93f32" stroke-width="2"/>
+            </svg>
+
+            <div class="absolute right-5 top-5 rounded-2xl border border-amberx/30 bg-amberx/10 px-4 py-3">
+              <div class="text-xs uppercase tracking-[.2em] text-amberx">Hot shard</div>
+              <div class="mt-1 text-sm">slot 10923-16383 内存偏高</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          <div class="rounded-[2rem] border border-white/10 bg-panel p-5">
+            <h2 class="text-xl font-bold">风险队列</h2>
+            <div class="mt-4 space-y-3">
+              <div class="rounded-2xl border border-redis/30 bg-redis/10 p-4">
+                <div class="mb-1 text-sm font-bold text-redis">高 · replica 延迟过高</div>
+                <p class="text-sm text-mute">7013 复制延迟 18.4s，故障切换后可能丢失较多写入。</p>
+              </div>
+              <div class="rounded-2xl border border-amberx/30 bg-amberx/10 p-4">
+                <div class="mb-1 text-sm font-bold text-amberx">中 · 慢查询集中</div>
+                <p class="text-sm text-mute">17 条慢查询来自相同命令模式，建议检查大 key 或 Lua 脚本。</p>
+              </div>
+              <div class="rounded-2xl border border-cyanx/25 bg-cyanx/10 p-4">
+                <div class="mb-1 text-sm font-bold text-cyanx">提示 · 客户端连接增长</div>
+                <p class="text-sm text-mute">连接数 4 小时内增长 31%，建议确认连接池释放策略。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-[2rem] border border-white/10 bg-panel p-5">
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="text-xl font-bold">采样命令</h2>
+              <span class="text-xs text-greenx">只读白名单</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs text-mute">
+              <span class="rounded-xl bg-white/5 px-3 py-2">INFO</span>
+              <span class="rounded-xl bg-white/5 px-3 py-2">SLOWLOG GET</span>
+              <span class="rounded-xl bg-white/5 px-3 py-2">LATENCY LATEST</span>
+              <span class="rounded-xl bg-white/5 px-3 py-2">CLIENT LIST</span>
+              <span class="rounded-xl bg-white/5 px-3 py-2">CLUSTER NODES</span>
+              <span class="rounded-xl bg-white/5 px-3 py-2">MEMORY STATS</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
