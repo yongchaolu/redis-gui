@@ -1,4 +1,4 @@
-import type {AnalysisReport, ConnectionProfile, ReportSummary} from '../types';
+import type {AnalysisReport, ConnectionProfile, ReportSummary, SlowLogEntry} from '../types';
 
 declare global {
   interface Window {
@@ -72,4 +72,33 @@ export async function deleteConnection(connectionId: string): Promise<void> {
     return;
   }
   throw new Error('当前不在 Wails 桌面环境，无法删除连接。');
+}
+
+export async function getConfig(connectionId: string): Promise<Record<string, string>> {
+  if (app()?.GetConfig) {
+    return (await app()!.GetConfig(connectionId)) as Record<string, string>;
+  }
+  return {};
+}
+
+export async function getServerInfo(connectionId: string): Promise<Record<string, string>> {
+  if (app()?.GetServerInfo) {
+    return (await app()!.GetServerInfo(connectionId)) as Record<string, string>;
+  }
+  return {};
+}
+
+export async function getSlowLog(connectionId: string): Promise<SlowLogEntry[]> {
+  if (app()?.GetSlowLog) {
+    const result = await app()!.GetSlowLog(connectionId);
+    return (result as SlowLogEntry[] | null) ?? [];
+  }
+  return [];
+}
+
+export async function getRealtimeOPS(connectionId: string): Promise<number> {
+  if (app()?.GetRealtimeOPS) {
+    return (await app()!.GetRealtimeOPS(connectionId)) as number;
+  }
+  return 0;
 }

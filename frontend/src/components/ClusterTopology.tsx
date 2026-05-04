@@ -3,7 +3,7 @@ import type {AnalysisReport} from '../types';
 export function ClusterTopology({report}: {report: AnalysisReport}) {
   const nodes = report.snapshot?.nodes?.length > 0 ? report.snapshot.nodes : [];
   return (
-    <div className="min-w-0 rounded-3xl border border-white/10 bg-panel p-3 sm:p-5">
+    <div className="min-w-0 rounded-lg border border-border bg-panel p-3 sm:p-5">
       <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h2 className="text-xl font-bold">拓扑视图</h2>
@@ -11,7 +11,7 @@ export function ClusterTopology({report}: {report: AnalysisReport}) {
         </div>
         <span className="w-fit rounded-full border border-cyanx/30 bg-cyanx/10 px-3 py-1 text-xs text-cyanx">{report.mode}</span>
       </div>
-      <div className="relative min-h-[260px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/20 p-3 sm:min-h-[330px] sm:p-5 lg:min-h-[390px]">
+      <div className="relative min-h-[260px] overflow-hidden rounded-[1.5rem] border border-border bg-black/20 p-3 sm:min-h-[330px] sm:p-5 lg:min-h-[390px]">
         <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-40" viewBox="0 0 800 390" fill="none">
           <path d="M110 100 C180 140 190 150 255 180" stroke="#40d7ff" strokeWidth="2" strokeDasharray="6 6" />
           <path d="M320 175 C390 145 410 120 455 105" stroke="#40d7ff" strokeWidth="2" strokeDasharray="6 6" />
@@ -23,7 +23,7 @@ export function ClusterTopology({report}: {report: AnalysisReport}) {
           {nodes.map((node, index) => (
             <div
               key={`${node.address}-${index}`}
-              className={`min-w-0 rounded-2xl border p-3 sm:rounded-3xl sm:p-4 ${node.role === 'master' ? 'border-greenx/40 bg-greenx/10' : 'border-white/10 bg-panel2'} ${node.error ? 'border-redis/50 bg-redis/10' : ''}`}
+              className={`min-w-0 rounded-2xl border p-3 sm:rounded-lg sm:p-4 ${node.role === 'master' ? 'border-greenx/40 bg-greenx/10' : 'border-border bg-panel2'} ${node.error ? 'border-redis/50 bg-redis/10' : ''}`}
             >
               <div className="text-xs uppercase tracking-[.2em] text-mute">{node.role || 'node'}</div>
               <div className={`mt-1 truncate font-bold ${node.error ? 'text-redis' : node.role === 'master' ? 'text-greenx' : 'text-ink'}`}>{node.address}</div>

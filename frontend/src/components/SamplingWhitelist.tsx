@@ -2,7 +2,7 @@ const commands = ['INFO', 'SLOWLOG GET', 'LATENCY LATEST', 'CLIENT LIST', 'CLUST
 
 export function SamplingWhitelist() {
   return (
-    <div className="min-w-0 rounded-3xl border border-white/10 bg-panel p-3 sm:p-5">
+    <div className="min-w-0 rounded-lg border border-border bg-panel p-3 sm:p-5">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold">采样命令</h2>
         <span className="text-xs text-greenx">只读白名单</span>

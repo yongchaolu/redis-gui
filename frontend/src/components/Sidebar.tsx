@@ -1,60 +1,77 @@
 import type { ConnectionProfile } from '../types';
+import { Icon } from './Icon';
+
+export type PageKey = 'connections' | 'detail' | 'monitor' | 'memory' | 'config';
 
 interface SidebarProps {
   connection?: ConnectionProfile;
   hasConnections: boolean;
+  page: PageKey;
+  onNavigate: (page: PageKey) => void;
 }
 
-export function Sidebar({ connection, hasConnections }: SidebarProps) {
+const NAV_ITEMS: { key: PageKey; label: string; icon: string }[] = [
+  { key: 'connections', label: 'Connections', icon: 'dns' },
+  { key: 'detail', label: 'Overview', icon: 'dashboard' },
+  { key: 'monitor', label: 'Real-time Monitor', icon: 'monitoring' },
+  { key: 'memory', label: 'Memory Analysis', icon: 'analytics' },
+  { key: 'config', label: 'Configuration', icon: 'settings' },
+];
+
+export function Sidebar({ connection, hasConnections, page, onNavigate }: SidebarProps) {
+  const connected = !!connection;
+
   return (
-    <aside className="min-w-0 border-b border-white/10 bg-black/25 px-3 py-3 backdrop-blur-xl sm:px-4 md:h-screen md:overflow-y-auto md:border-b-0 md:border-r md:py-4 lg:py-5">
-      <div className="mb-3 flex items-center gap-2 md:mb-4 md:block lg:mb-6">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-redis shadow-danger md:h-10 md:w-10">
-          <span className="text-base font-black tracking-tight text-white">R</span>
+    <aside className="fixed left-0 top-0 z-40 hidden h-full w-[240px] border-r border-border bg-panel font-sans antialiased tracking-tight text-sm md:block">
+      <div className="p-5">
+        <div className="flex items-center gap-2">
+          <Icon name="database" className="text-redis text-xl" filled />
+          <h1 className="text-base font-black text-redis uppercase tracking-wider">Redis Lens</h1>
         </div>
-        <div className="min-w-0">
-          <div className="truncate text-[10px] uppercase tracking-[.2em] text-mute md:text-xs md:tracking-[.28em]">Redis Lens</div>
-          <div className="truncate text-sm font-semibold md:text-base">性能分析台</div>
-        </div>
+        <p className="mt-0.5 text-[10px] text-mute">v1.0.0-stable</p>
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-panel/80 p-3 md:mt-4 md:rounded-2xl md:p-3 lg:mt-6">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-[.2em] text-mute">Active Target</span>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] ${connection ? 'bg-greenx/15 text-greenx' : 'bg-white/10 text-mute'}`}>{connection ? 'Ready' : 'Empty'}</span>
-        </div>
-        <div className="truncate text-sm font-semibold">{connection?.name ?? '未选择连接'}</div>
-        <div className="mt-1 truncate text-[10px] text-mute">{connection ? `${connection.mode} · ${connection.addresses.length} endpoint(s)` : '创建连接后开始分析'}</div>
-      </div>
+      <nav className="mt-2 px-2">
+        {NAV_ITEMS.map((item) => {
+          const isActive = page === item.key;
+          const isDisabled = !hasConnections && item.key !== 'connections';
+          return (
+            <button
+              key={item.key}
+              onClick={() => !isDisabled && onNavigate(item.key)}
+              disabled={isDisabled}
+              className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors ${
+                isActive
+                  ? 'border-l-2 border-redis bg-panel2 text-white'
+                  : isDisabled
+                    ? 'cursor-not-allowed text-mute/50'
+                    : 'border-l-2 border-transparent text-mute hover:bg-panel2/50 hover:text-ink'
+              }`}
+            >
+              <Icon name={item.icon} className="text-[18px]" />
+              <span className="text-[13px]">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-panel/80 p-3 md:mt-4 md:rounded-2xl md:p-3 lg:mt-4">
-        <div className="text-[10px] uppercase tracking-[.2em] text-mute mb-1.5">采样白名单</div>
-        <div className="space-y-0.5 text-[10px] text-mute">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-1 w-1 rounded-full bg-greenx" />
-            INFO / SLOWLOG
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-1 w-1 rounded-full bg-greenx" />
-            LATENCY / CLIENT
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-1 w-1 rounded-full bg-greenx" />
-            CLUSTER / MEMORY
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-1 w-1 rounded-full bg-greenx" />
-            SCAN (只读)
-          </div>
+      <div className="absolute bottom-0 left-0 w-full border-t border-border p-4">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-block h-2 w-2 rounded-full ${
+              connected ? 'bg-greenx animate-ping' : 'bg-mute'
+            }`}
+          />
+          <span className="text-[11px] uppercase tracking-widest text-mute">
+            {connected ? 'Connected' : 'Disconnected'}
+          </span>
         </div>
+        {connection && (
+          <div className="mt-1 truncate text-[10px] text-mute">
+            {connection.addresses[0] ?? connection.name}
+          </div>
+        )}
       </div>
-
-      {!hasConnections && (
-        <div className="mt-3 rounded-xl border border-amberx/30 bg-amberx/10 p-3 md:mt-4 md:rounded-2xl md:p-3 lg:mt-4">
-          <div className="text-[10px] uppercase tracking-[.2em] text-amberx mb-1">提示</div>
-          <p className="text-[10px] text-mute">还没有保存的连接。请在右侧创建第一个 Redis 连接。</p>
-        </div>
-      )}
     </aside>
   );
 }

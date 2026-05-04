@@ -54,6 +54,13 @@ export interface BigKey {
   ttl: number;
 }
 
+export interface SlowLogEntry {
+  id: number;
+  durationMicros: number;
+  command: string;
+  at: number;
+}
+
 export interface AnalysisReport {
   id: string;
   connectionId: string;

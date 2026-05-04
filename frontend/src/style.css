@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 html {
-  background: #0b1014;
+  background: #0F172A;
 }
 
 body {
   margin: 0;
   min-width: 280px;
-  color: #d8e3ea;
+  color: #F8FAFC;
   font-family: "Microsoft YaHei", "Noto Sans SC", "Segoe UI", sans-serif;
 }
 
@@ -21,4 +21,9 @@ select {
 
 * {
   box-sizing: border-box;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 1.25rem;
 }

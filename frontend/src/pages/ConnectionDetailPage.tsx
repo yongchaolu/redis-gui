@@ -1,10 +1,11 @@
 import {useEffect, useState} from 'react';
-import {BigKeyList} from '../components/BigKeyList';
 import {ClusterTopology} from '../components/ClusterTopology';
-import {CommandStatsTable} from '../components/CommandStatsTable';
-import {HealthCards} from '../components/HealthCards';
+import {FrequentCommandsTable} from '../components/FrequentCommandsTable';
+import {InstanceSummary} from '../components/InstanceSummary';
+import {KPICards} from '../components/KPICards';
+import {MemoryGauge} from '../components/MemoryGauge';
+import {QPSChart} from '../components/QPSChart';
 import {RiskQueue} from '../components/RiskQueue';
-import {SlowLogDetail} from '../components/SlowLogDetail';
 import {useToast} from '../components/Toast';
 import {exportReport, listReports, runAnalysis} from '../lib/api';
 import type {AnalysisReport, ConnectionProfile, ReportSummary} from '../types';
@@ -15,6 +16,7 @@ interface Props {
   onBack: () => void;
   onSelectConnection: (id: string) => void;
   onDelete: (id: string) => void;
+  onReportLoaded?: (report: AnalysisReport | null) => void;
 }
 
 const modeLabel: Record<string, string> = {
@@ -23,7 +25,7 @@ const modeLabel: Record<string, string> = {
   cluster: '集群',
 };
 
-export function ConnectionDetailPage({connection, connections, onBack, onSelectConnection, onDelete}: Props) {
+export function ConnectionDetailPage({connection, connections, onBack, onSelectConnection, onDelete, onReportLoaded}: Props) {
   const {showToast} = useToast();
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [running, setRunning] = useState(false);
@@ -43,6 +45,10 @@ export function ConnectionDetailPage({connection, connections, onBack, onSelectC
     handleRun();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connection.id]);
+
+  useEffect(() => {
+    onReportLoaded?.(report);
+  }, [report, onReportLoaded]);
 
   async function loadHistory(limit = historyLimit) {
     try {
@@ -104,7 +110,7 @@ export function ConnectionDetailPage({connection, connections, onBack, onSelectC
   return (
     <div className="space-y-5">
       {/* Header */}
-      <header className="min-w-0 rounded-3xl border border-white/10 bg-panel p-4 sm:p-6">
+      <header className="min-w-0 rounded-lg border border-border bg-panel p-4 sm:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0">
             <button
@@ -139,7 +145,7 @@ export function ConnectionDetailPage({connection, connections, onBack, onSelectC
             {(connection.tags ?? []).length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {(connection.tags ?? []).map((tag) => (
-                  <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-mute">{tag}</span>
+                  <span key={tag} className="rounded-full border border-border bg-white/5 px-2 py-0.5 text-[10px] text-mute">{tag}</span>
                 ))}
               </div>
             )}
@@ -147,7 +153,7 @@ export function ConnectionDetailPage({connection, connections, onBack, onSelectC
           <div className="flex shrink-0 gap-2">
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="rounded-2xl border border-white/10 bg-panel px-4 py-2.5 text-sm text-redis hover:bg-redis/10"
+              className="rounded-2xl border border-border bg-panel px-4 py-2.5 text-sm text-redis hover:bg-redis/10"
             >
               删除连接
             </button>
@@ -165,43 +171,61 @@ export function ConnectionDetailPage({connection, connections, onBack, onSelectC
         <button disabled className="cursor-not-allowed rounded-2xl border border-cyanx/20 px-5 py-3 text-sm text-cyanx/50">
           智能分析 <span className="ml-1 rounded bg-cyanx/10 px-1.5 py-0.5 text-[10px]">Beta</span>
         </button>
-        <button onClick={handleExport} disabled={!report || exporting} className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-mute hover:border-white/20 hover:text-ink disabled:cursor-not-allowed disabled:opacity-45">
+        <button onClick={handleExport} disabled={!report || exporting} className="rounded-2xl border border-border px-4 py-3 text-sm text-mute hover:border-white/20 hover:text-ink disabled:cursor-not-allowed disabled:opacity-45">
           {exporting ? '导出中...' : '导出 HTML'}
         </button>
       </div>
 
       {!report ? (
-        <div className="rounded-3xl border border-white/10 bg-panel p-5 sm:p-7">
+        <div className="rounded-lg border border-border bg-panel p-5 sm:p-7">
           <div className="text-xs uppercase tracking-[.28em] text-cyanx">Analyzing</div>
           <h2 className="mt-3 text-2xl font-black">正在分析...</h2>
           <p className="mt-2 text-sm leading-6 text-mute">首次进入详情页会自动运行 Redis 采样分析，请稍候。</p>
         </div>
       ) : (
-        <>
-          <HealthCards report={report} />
-          <section className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.85fr)]">
+        <div className="grid grid-cols-12 gap-3">
+          {/* Row 1: Instance Summary + KPI Cards */}
+          <div className="col-span-12 lg:col-span-4">
+            <InstanceSummary report={report} />
+          </div>
+          <div className="col-span-12 lg:col-span-8">
+            <KPICards report={report} />
+          </div>
+
+          {/* Row 2: QPS Chart + Memory Gauge */}
+          <div className="col-span-12 lg:col-span-8">
+            <QPSChart report={report} />
+          </div>
+          <div className="col-span-12 lg:col-span-4">
+            <MemoryGauge report={report} />
+          </div>
+
+          {/* Row 3: Frequent Commands Table */}
+          <div className="col-span-12">
+            <FrequentCommandsTable report={report} />
+          </div>
+
+          {/* Row 4: Cluster Topology */}
+          <div className="col-span-12">
             <ClusterTopology report={report} />
-            <div className="min-w-0 space-y-5">
-              <RiskQueue report={report} />
-            </div>
-          </section>
-          <section className="mt-5 space-y-5">
-            <SlowLogDetail report={report} />
-            <CommandStatsTable report={report} />
-            <BigKeyList report={report} />
-          </section>
-        </>
+          </div>
+
+          {/* Row 5: Risk Queue */}
+          <div className="col-span-12">
+            <RiskQueue report={report} />
+          </div>
+        </div>
       )}
 
       {/* History */}
       {history.length > 0 && (
         <>
           <div className="border-t border-white/5" />
-          <section className="min-w-0 rounded-3xl border border-white/10 bg-panel p-4 sm:p-6">
+          <section className="min-w-0 rounded-lg border border-border bg-panel p-4 sm:p-6">
             <h2 className="text-xl font-black">历史报告</h2>
             <div className="mt-4 space-y-3">
               {history.map((item) => (
-                <article key={item.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
+                <article key={item.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-semibold">{new Date(item.generatedAt).toLocaleString()}</div>
                     <div className="mt-1 text-xs text-mute">{item.findingCount} 个风险项</div>
@@ -219,7 +243,7 @@ export function ConnectionDetailPage({connection, connections, onBack, onSelectC
                   setHistoryLimit(next);
                   loadHistory(next);
                 }}
-                className="mt-3 w-full rounded-2xl border border-white/10 bg-panel2 py-2.5 text-sm text-mute transition hover:border-cyanx/50 hover:text-ink"
+                className="mt-3 w-full rounded-2xl border border-border bg-panel2 py-2.5 text-sm text-mute transition hover:border-cyanx/50 hover:text-ink"
               >
                 加载更多
               </button>
@@ -231,11 +255,11 @@ export function ConnectionDetailPage({connection, connections, onBack, onSelectC
       {/* Delete Confirm Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-panel p-6">
+          <div className="w-full max-w-sm rounded-lg border border-border bg-panel p-6">
             <h3 className="text-lg font-bold">确认删除连接？</h3>
             <p className="mt-2 text-sm text-mute">删除后该连接的所有历史报告也会被一并清除，此操作不可撤销。</p>
             <div className="mt-5 flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-2xl border border-white/10 bg-panel2 px-4 py-3 text-sm font-bold text-ink hover:border-cyanx/50">取消</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-2xl border border-border bg-panel2 px-4 py-3 text-sm font-bold text-ink hover:border-cyanx/50">取消</button>
               <button onClick={handleDelete} className="flex-1 rounded-2xl bg-redis px-4 py-3 text-sm font-bold text-white shadow-danger hover:bg-red-500">确认删除</button>
             </div>
           </div>

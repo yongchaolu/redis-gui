@@ -10,7 +10,7 @@ export function BigKeyList({report}: {report: AnalysisReport}) {
 
   if (keys.length === 0) {
     return (
-      <div className="min-w-0 rounded-3xl border border-white/10 bg-panel p-3 sm:p-5">
+      <div className="min-w-0 rounded-lg border border-border bg-panel p-3 sm:p-5">
         <h2 className="text-xl font-bold">大 Key 扫描</h2>
         <p className="mt-3 text-sm text-mute">本次采样未发现大小超过阈值的大 Key。</p>
       </div>
@@ -24,12 +24,12 @@ export function BigKeyList({report}: {report: AnalysisReport}) {
   }
 
   return (
-    <div className="min-w-0 rounded-3xl border border-white/10 bg-panel p-3 sm:p-5">
+    <div className="min-w-0 rounded-lg border border-border bg-panel p-3 sm:p-5">
       <h2 className="text-xl font-bold">大 Key 扫描</h2>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm">
           <thead>
-            <tr className="border-b border-white/10 text-mute">
+            <tr className="border-b border-border text-mute">
               <th className="pb-2 pr-4">节点</th>
               <th className="pb-2 pr-4">Key</th>
               <th className="pb-2 pr-4">类型</th>
@@ -37,7 +37,7 @@ export function BigKeyList({report}: {report: AnalysisReport}) {
               <th className="pb-2">元素数</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-border/50">
             {keys.map((k, i) => (
               <tr key={i} className={k.size > 1024 * 1024 ? 'text-redis' : ''}>
                 <td className="py-2 pr-4 text-mute">{k.node}</td>

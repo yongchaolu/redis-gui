@@ -412,3 +412,56 @@ func int64FromAny(value any) int64 {
 		return parsed
 	}
 }
+
+// ReadConfig runs CONFIG GET * and returns the key-value pairs.
+func (s *Sampler) ReadConfig(ctx context.Context, profile model.ConnectionProfile) (map[string]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
+	defer cancel()
+	addr := firstAddress(profile)
+	client := redis.NewClient(optionsFor(profile, addr))
+	defer client.Close()
+	raw, err := client.ConfigGet(ctx, "*").Result()
+	if err != nil {
+		return nil, err
+	}
+	return raw, nil
+}
+
+// ReadInfoSections runs INFO and returns the full parsed map.
+func (s *Sampler) ReadInfoSections(ctx context.Context, profile model.ConnectionProfile) (map[string]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
+	defer cancel()
+	addr := firstAddress(profile)
+	client := redis.NewClient(optionsFor(profile, addr))
+	defer client.Close()
+	info, err := client.Info(ctx).Result()
+	if err != nil {
+		return nil, err
+	}
+	return parseInfo(info), nil
+}
+
+// ReadSlowLog returns the latest slow log entries.
+func (s *Sampler) ReadSlowLog(ctx context.Context, profile model.ConnectionProfile) ([]model.SlowLogEntry, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
+	defer cancel()
+	addr := firstAddress(profile)
+	client := redis.NewClient(optionsFor(profile, addr))
+	defer client.Close()
+	return readSlowlog(ctx, client), nil
+}
+
+// ReadOPS returns the current instantaneous_ops_per_sec.
+func (s *Sampler) ReadOPS(ctx context.Context, profile model.ConnectionProfile) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
+	defer cancel()
+	addr := firstAddress(profile)
+	client := redis.NewClient(optionsFor(profile, addr))
+	defer client.Close()
+	info, err := client.Info(ctx, "stats").Result()
+	if err != nil {
+		return 0, err
+	}
+	parsed := parseInfo(info)
+	return intValue(parsed["instantaneous_ops_per_sec"]), nil
+}

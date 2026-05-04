@@ -27,7 +27,7 @@ export function HealthCards({report}: {report: AnalysisReport}) {
   return (
     <section className="mb-5 grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
       {cards.map((card) => (
-        <div key={card.label} className="min-w-0 rounded-2xl border border-white/10 bg-panel p-2.5 shadow-glow sm:rounded-3xl sm:p-4 lg:p-5">
+        <div key={card.label} className="min-w-0 rounded-2xl border border-border bg-panel p-2.5 shadow-glow sm:rounded-lg sm:p-4 lg:p-5">
           <div className="truncate text-[11px] text-mute sm:text-sm">{card.label}</div>
           <div className="mt-2 flex min-w-0 items-end gap-1 sm:mt-4 sm:gap-2">
             <span className={`truncate text-2xl font-black sm:text-4xl lg:text-5xl ${card.tone}`}>{card.value}</span>

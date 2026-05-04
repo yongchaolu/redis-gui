@@ -12,7 +12,7 @@ export function CommandStatsTable({report}: {report: AnalysisReport}) {
 
   if (stats.length === 0) {
     return (
-      <div className="min-w-0 rounded-3xl border border-white/10 bg-panel p-3 sm:p-5">
+      <div className="min-w-0 rounded-lg border border-border bg-panel p-3 sm:p-5">
         <h2 className="text-xl font-bold">命令统计</h2>
         <p className="mt-3 text-sm text-mute">本次采样暂无命令统计信息。</p>
       </div>
@@ -20,19 +20,19 @@ export function CommandStatsTable({report}: {report: AnalysisReport}) {
   }
 
   return (
-    <div className="min-w-0 rounded-3xl border border-white/10 bg-panel p-3 sm:p-5">
+    <div className="min-w-0 rounded-lg border border-border bg-panel p-3 sm:p-5">
       <h2 className="text-xl font-bold">命令统计</h2>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm">
           <thead>
-            <tr className="border-b border-white/10 text-mute">
+            <tr className="border-b border-border text-mute">
               <th className="pb-2 pr-4">节点</th>
               <th className="pb-2 pr-4">命令</th>
               <th className="pb-2 pr-4">调用次数</th>
               <th className="pb-2">平均耗时</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-border/50">
             {stats.slice(0, 30).map((s, i) => (
               <tr key={i} className={s.usecPerCall > 10000 ? 'text-redis' : s.usecPerCall > 1000 ? 'text-amberx' : ''}>
                 <td className="py-2 pr-4 text-mute">{s.node}</td>

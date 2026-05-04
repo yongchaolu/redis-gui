@@ -106,6 +106,50 @@ func (a *App) DeleteConnection(connectionID string) error {
 	return a.store.DeleteConnection(connectionID)
 }
 
+func (a *App) GetConfig(connectionID string) (map[string]string, error) {
+	if err := a.ready(); err != nil {
+		return nil, err
+	}
+	profile, err := a.store.GetConnection(connectionID)
+	if err != nil {
+		return nil, err
+	}
+	return a.sampler.ReadConfig(a.context(), profile)
+}
+
+func (a *App) GetServerInfo(connectionID string) (map[string]string, error) {
+	if err := a.ready(); err != nil {
+		return nil, err
+	}
+	profile, err := a.store.GetConnection(connectionID)
+	if err != nil {
+		return nil, err
+	}
+	return a.sampler.ReadInfoSections(a.context(), profile)
+}
+
+func (a *App) GetSlowLog(connectionID string) ([]model.SlowLogEntry, error) {
+	if err := a.ready(); err != nil {
+		return nil, err
+	}
+	profile, err := a.store.GetConnection(connectionID)
+	if err != nil {
+		return nil, err
+	}
+	return a.sampler.ReadSlowLog(a.context(), profile)
+}
+
+func (a *App) GetRealtimeOPS(connectionID string) (int, error) {
+	if err := a.ready(); err != nil {
+		return 0, err
+	}
+	profile, err := a.store.GetConnection(connectionID)
+	if err != nil {
+		return 0, err
+	}
+	return a.sampler.ReadOPS(a.context(), profile)
+}
+
 func (a *App) ExportReport(reportID string) (string, error) {
 	if err := a.ready(); err != nil {
 		return "", err
