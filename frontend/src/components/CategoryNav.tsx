@@ -1,3 +1,5 @@
+import {cn} from '../lib/utils';
+
 interface Props {
   categories: string[];
   active: string;
@@ -14,14 +16,19 @@ export function CategoryNav({categories, active, onSelect, counts}: Props) {
           <button
             key={cat}
             onClick={() => onSelect(cat)}
-            className={`flex items-center justify-between rounded-md px-3 py-2 text-left text-xs font-medium transition-colors ${
+            className={cn(
+              "flex items-center justify-between rounded-md px-3 py-2 text-left text-xs font-medium transition-colors border-l-2",
               isActive
-                ? 'border-l-2 border-redis bg-panel2 text-white'
-                : 'border-l-2 border-transparent text-mute hover:bg-panel2/50 hover:text-ink'
-            }`}
+                ? "text-white"
+                : "border-transparent hover:text-white"
+            )}
+            style={isActive
+              ? {borderLeftColor: 'var(--color-redis-red)', background: 'var(--color-surface-hover)'}
+              : {color: 'var(--color-text-secondary)'}
+            }
           >
             <span className="capitalize">{cat}</span>
-            <span className={`font-mono text-[10px] ${isActive ? 'text-redis' : 'text-mute'}`}>
+            <span className="font-mono text-[10px]" style={{color: isActive ? 'var(--color-redis-red)' : 'var(--color-text-secondary)'}}>
               {counts[cat] ?? 0}
             </span>
           </button>

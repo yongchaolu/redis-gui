@@ -1,183 +1,228 @@
-import {useEffect, useState} from 'react';
-import {DataTypeDistribution} from '../components/DataTypeDistribution';
-import {Icon} from '../components/Icon';
-import {MemorySummaryCards} from '../components/MemorySummaryCards';
-import {MemoryTreemap} from '../components/MemoryTreemap';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {Search, Filter, Eye, Trash2, AlertCircle} from 'lucide-react';
+import {Card, Badge, cn} from '../lib/utils';
 import {runAnalysis} from '../lib/api';
-import type {AnalysisReport, BigKey, ConnectionProfile} from '../types';
+import type {ConnectionProfile, AnalysisReport} from '../types';
 
 interface Props {
   connection: ConnectionProfile;
 }
 
-export function MemoryAnalysisPage({ connection }: Props) {
+export function MemoryAnalysisPage({connection}: Props) {
   const [report, setReport] = useState<AnalysisReport | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('');
-  const [sortBy, setSortBy] = useState<'size' | 'length'>('size');
-  const [page, setPage] = useState(0);
-  const pageSize = 10;
+  const [search, setSearch] = useState('');
+  const [sortBySize, setSortBySize] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadReport = useCallback(async () => {
     setLoading(true);
     setError('');
-    runAnalysis(connection.id)
-      .then((r) => { if (!cancelled) setReport(r); })
-      .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : 'Analysis failed'); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+    try {
+      const result = await runAnalysis(connection.id);
+      setReport(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '分析失败');
+    } finally {
+      setLoading(false);
+    }
   }, [connection.id]);
 
-  const allBigKeys: BigKey[] = (report?.snapshot?.nodes ?? []).flatMap((n) => n.bigKeys ?? []);
-
-  const filtered = filter.trim()
-    ? allBigKeys.filter((k) => k.name.toLowerCase().includes(filter.toLowerCase()))
-    : allBigKeys;
-
-  const sorted = [...filtered].sort((a, b) => sortBy === 'size' ? b.size - a.size : b.length - a.length);
-  const totalPages = Math.ceil(sorted.length / pageSize);
-  const paged = sorted.slice(page * pageSize, (page + 1) * pageSize);
-
-  function fmtSize(bytes: number): string {
-    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-    if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${bytes} B`;
-  }
+  useEffect(() => {
+    loadReport();
+  }, [loadReport]);
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <Icon name="analytics" className="text-4xl text-mute animate-pulse" />
-          <p className="mt-2 text-sm text-mute">Loading memory analysis...</p>
-        </div>
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="animate-pulse font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>Analyzing memory...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="rounded-lg border border-redis/30 bg-redis/10 px-6 py-4 text-sm text-redis">{error}</div>
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="rounded-lg px-6 py-4 text-center" style={{border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.1)'}}>
+          <p className="text-sm" style={{color: 'var(--color-redis-red)'}}>{error}</p>
+          <button onClick={loadReport} className="mt-3 rounded-md px-3 py-1.5 text-xs" style={{border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)'}}>Retry</button>
+        </div>
       </div>
     );
   }
 
-  const info = report?.snapshot?.nodes?.[0]?.info ?? {};
-  const fragmentation = parseFloat(info['mem_fragmentation_ratio'] ?? '0');
-  const policy = info['maxmemory_policy'] ?? 'N/A';
-  const usedMem = parseFloat(info['used_memory'] ?? '0');
+  if (!report) return null;
+
+  const allBigKeys = report.snapshot?.nodes?.flatMap((n) => n.bigKeys ?? []) ?? [];
+  const info = report.snapshot?.nodes?.[0]?.info ?? {};
+  const memStats = report.snapshot?.nodes?.[0]?.memoryStats ?? {};
+  const fragRatio = memStats['mem_fragmentation_ratio'] ?? info['mem_fragmentation_ratio'] ?? '-';
+  const maxmemoryPolicy = report.metrics?.['maxmemory_policy'] ?? '-';
+  const usedMemoryHuman = info['used_memory_human'] ?? '-';
+
+  const filteredKeys = useMemo(() => {
+    let keys = allBigKeys;
+    if (search) {
+      const q = search.toLowerCase();
+      keys = keys.filter((k) => k.name.toLowerCase().includes(q) || k.type.toLowerCase().includes(q));
+    }
+    return [...keys].sort((a, b) => sortBySize ? b.size - a.size : b.length - a.length);
+  }, [allBigKeys, search, sortBySize]);
+
+  const typeDistribution = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const k of allBigKeys) map[k.type] = (map[k.type] ?? 0) + k.size;
+    const total = Object.values(map).reduce((s, v) => s + v, 0) || 1;
+    const colors: Record<string, string> = {string: '#dc2626', hash: '#3b82f6', set: '#10b981', list: '#eab308', zset: '#94a3b8'};
+    return Object.entries(map).sort(([, a], [, b]) => b - a).map(([type, size]) => ({
+      type: type.toUpperCase(), size, pct: Math.round((size / total) * 100), color: colors[type] ?? '#94a3b8',
+    }));
+  }, [allBigKeys]);
+
+  const treemapData = useMemo(() => {
+    const prefixMap: Record<string, number> = {};
+    for (const k of allBigKeys) {
+      const prefix = k.name.split(':')[0] || 'other';
+      prefixMap[prefix] = (prefixMap[prefix] ?? 0) + k.size;
+    }
+    return Object.entries(prefixMap).sort(([, a], [, b]) => b - a).slice(0, 6).map(([prefix, size]) => ({prefix, size}));
+  }, [allBigKeys]);
+
+  const totalTreemapSize = treemapData.reduce((s, d) => s + d.size, 0) || 1;
+  const treemapColors = ['rgba(220,38,38,0.2)', 'rgba(59,130,246,0.2)', 'rgba(16,185,129,0.2)', 'rgba(245,158,11,0.2)', 'rgba(148,163,184,0.2)', 'rgba(139,92,246,0.2)'];
+  const treemapBorders = ['rgba(220,38,38,0.4)', 'rgba(59,130,246,0.4)', 'rgba(16,185,129,0.4)', 'rgba(245,158,11,0.4)', 'rgba(148,163,184,0.4)', 'rgba(139,92,246,0.4)'];
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-ink">Memory Analysis</h1>
-        <p className="mt-1 text-xs text-mute">
-          Deep inspection of {(usedMem / (1024 * 1024)).toFixed(0)}MB total resident memory
-        </p>
-        <div className="mt-2 flex gap-2">
-          {fragmentation > 0 && (
-            <span className={`rounded-full px-2.5 py-0.5 text-[11px] ${fragmentation < 1.5 ? 'bg-greenx/15 text-greenx' : 'bg-amberx/15 text-amberx'}`}>
-              Fragmentation {fragmentation.toFixed(2)}x
-            </span>
-          )}
-          <span className="rounded-full bg-panel2 px-2.5 py-0.5 text-[11px] text-mute">
-            Policy: {policy}
-          </span>
+    <div className="space-y-6">
+      <div className="flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-1">Memory Analysis</h2>
+          <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>Deep inspection of {usedMemoryHuman} total resident memory</p>
+        </div>
+        <div className="flex gap-2">
+          <Card className="py-2 px-4 flex items-center gap-4" style={{background: 'var(--color-surface)'}}>
+            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>FRAGMENTATION:</span>
+            <span className="text-[10px] font-mono font-bold text-emerald-400">{fragRatio}x</span>
+          </Card>
+          <Card className="py-2 px-4 flex items-center gap-4" style={{background: 'var(--color-surface)'}}>
+            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>EVICTION:</span>
+            <span className="text-[10px] font-mono font-bold text-white uppercase">{maxmemoryPolicy}</span>
+          </Card>
         </div>
       </div>
 
-      {/* Row 1: Treemap + Data Type Distribution */}
-      <div className="grid grid-cols-12 gap-3">
-        <div className="col-span-12 lg:col-span-8">
-          <MemoryTreemap bigKeys={allBigKeys} />
-        </div>
-        <div className="col-span-12 lg:col-span-4">
-          <DataTypeDistribution bigKeys={allBigKeys} />
-        </div>
-      </div>
-
-      {/* Row 2: Big Keys Table */}
-      <div className="overflow-hidden rounded-lg border border-border bg-panel">
-        <div className="flex items-center justify-between border-b border-border bg-panel2/50 px-4 py-2">
-          <div className="flex items-center gap-2">
-            <Icon name="warning" className="text-amberx text-[18px]" />
-            <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-white">Big Keys Report</h3>
+      <div className="grid grid-cols-12 gap-6">
+        <Card className="col-span-12 lg:col-span-8 flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xs font-mono uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Prefix Allocation</h3>
+            <Badge style={{background: 'var(--color-obsidian)', border: '1px solid var(--color-border)'}}>Logarithmic Scale</Badge>
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              value={filter}
-              onChange={(e) => { setFilter(e.target.value); setPage(0); }}
-              placeholder="Filter keys..."
-              className="rounded border border-border bg-black/20 px-2.5 py-1 text-[11px] text-ink outline-none focus:border-cyanx w-36"
-            />
-            <button
-              onClick={() => setSortBy(sortBy === 'size' ? 'length' : 'size')}
-              className="rounded border border-border bg-panel2 px-2 py-1 text-[10px] font-bold uppercase text-mute hover:text-ink"
-            >
-              Sort by {sortBy === 'size' ? 'Elements' : 'Size'}
+          {treemapData.length > 0 ? (
+            <div className="grid grid-cols-6 grid-rows-3 gap-1 h-[320px] font-mono">
+              {treemapData.map((item, i) => {
+                const pct = item.size / totalTreemapSize;
+                const colSpan = i === 0 ? 'col-span-3' : i === 1 ? 'col-span-2' : i === 2 ? 'col-span-1' : 'col-span-2';
+                const rowSpan = i === 0 ? 'row-span-2' : i === 2 ? 'row-span-2' : 'row-span-1';
+                return (
+                  <div key={item.prefix} className={cn(colSpan, rowSpan, "border hover:brightness-125 transition-all p-3 cursor-pointer rounded")} style={{background: treemapColors[i], borderColor: treemapBorders[i]}}>
+                    <span className="text-white font-bold block text-sm">{item.prefix}:*</span>
+                    <span className="text-[10px] text-white/50">{formatBytes(item.size)} ({Math.round(pct * 100)}%)</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[320px] font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>No big keys data available</div>
+          )}
+        </Card>
+
+        <Card className="col-span-12 lg:col-span-4 flex flex-col">
+          <h3 className="text-xs font-mono uppercase tracking-widest mb-6" style={{color: 'var(--color-text-secondary)'}}>Type Distribution</h3>
+          {typeDistribution.length > 0 ? (
+            <div className="space-y-6 flex-grow">
+              {typeDistribution.map((item) => (
+                <div key={item.type} className="space-y-2">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-white font-bold">{item.type}</span>
+                    <span style={{color: 'var(--color-text-secondary)'}}>{formatBytes(item.size)} ({item.pct}%)</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full" style={{background: 'var(--color-obsidian)'}}>
+                    <div className="h-full rounded-full transition-all duration-1000" style={{width: `${item.pct}%`, background: item.color}} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex-grow flex items-center justify-center font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>No data</div>
+          )}
+        </Card>
+      </div>
+
+      <Card className="p-0 overflow-hidden">
+        <div className="p-4 flex justify-between items-center" style={{borderBottom: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.3)'}}>
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-4 h-4" style={{color: 'var(--color-redis-red)'}} />
+            <h3 className="text-sm font-semibold text-white">Big Keys Report</h3>
+          </div>
+          <div className="flex gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2" style={{color: 'var(--color-text-secondary)'}} />
+              <input className="rounded px-3 py-1.5 pl-9 text-xs outline-none w-48" style={{background: 'var(--color-obsidian)', border: '1px solid var(--color-border)'}} placeholder="Filter by pattern..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <button onClick={() => setSortBySize(!sortBySize)} className="flex items-center gap-2 rounded px-3 py-1.5 text-[10px] font-mono transition-colors" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
+              <Filter className="w-3.5 h-3.5" /> SORT BY {sortBySize ? 'SIZE' : 'LENGTH'}
             </button>
           </div>
         </div>
-
-        <table className="w-full text-left font-mono text-xs">
-          <thead className="border-b border-border bg-panel2/30 text-mute">
-            <tr>
-              <th className="px-4 py-2 font-medium uppercase tracking-tight">Key Name</th>
-              <th className="px-4 py-2 font-medium uppercase tracking-tight">Type</th>
-              <th className="px-4 py-2 font-medium uppercase tracking-tight">Size</th>
-              <th className="px-4 py-2 font-medium uppercase tracking-tight">Elements</th>
-              <th className="px-4 py-2 font-medium uppercase tracking-tight">TTL</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/50">
-            {paged.map((key) => (
-              <tr key={key.name + key.type} className="transition-colors hover:bg-panel2/50">
-                <td className="max-w-[200px] truncate px-4 py-2 text-ink">{key.name}</td>
-                <td className="px-4 py-2">
-                  <span className="rounded bg-panel2 px-1.5 py-0.5 text-[10px] uppercase text-mute">{key.type}</span>
-                </td>
-                <td className={`px-4 py-2 ${key.size > 1024 * 1024 ? 'text-redis font-bold' : 'text-ink'}`}>
-                  {fmtSize(key.size)}
-                </td>
-                <td className="px-4 py-2 text-ink">{key.length.toLocaleString()}</td>
-                <td className="px-4 py-2 text-mute">{key.ttl > 0 ? `${key.ttl}s` : 'no expire'}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-mono text-sm">
+            <thead style={{background: 'var(--color-obsidian)', color: 'var(--color-text-secondary)'}}>
+              <tr className="uppercase text-[10px] tracking-widest" style={{borderBottom: '1px solid var(--color-border)'}}>
+                <th className="p-4">Key Name</th>
+                <th className="p-4">Type</th>
+                <th className="p-4 text-right">Elements</th>
+                <th className="p-4 text-right">Size</th>
+                <th className="p-4 text-right">TTL</th>
+                <th className="p-4 text-center">Actions</th>
               </tr>
-            ))}
-            {paged.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-mute">No matching keys</td></tr>
-            )}
-          </tbody>
-        </table>
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border px-4 py-2">
-            <span className="text-[10px] text-mute">Showing {page * pageSize + 1}-{Math.min((page + 1) * pageSize, sorted.length)} of {sorted.length}</span>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setPage(Math.max(0, page - 1))}
-                disabled={page === 0}
-                className="rounded border border-border px-2 py-0.5 text-[10px] text-mute hover:text-ink disabled:opacity-40"
-              >
-                Prev
-              </button>
-              <button
-                onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-                disabled={page >= totalPages - 1}
-                className="rounded border border-border px-2 py-0.5 text-[10px] text-mute hover:text-ink disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Row 3: Summary Cards */}
-      {report && <MemorySummaryCards report={report} bigKeys={allBigKeys} />}
+            </thead>
+            <tbody>
+              {filteredKeys.slice(0, 50).map((key, idx) => (
+                <tr key={idx} className="group transition-colors" style={{borderBottom: '1px solid rgba(51,65,85,0.3)'}}>
+                  <td className="p-4 text-white font-medium">{key.name}</td>
+                  <td className="p-4"><Badge style={{background: 'var(--color-surface-hover)', color: 'white'}}>{key.type}</Badge></td>
+                  <td className="p-4 text-right" style={{color: 'var(--color-text-secondary)'}}>{key.length.toLocaleString()}</td>
+                  <td className={cn("p-4 text-right font-bold", key.size > 10 * 1024 * 1024 ? 'text-red-500' : 'text-yellow-500')}>{formatBytes(key.size)}</td>
+                  <td className="p-4 text-right font-mono" style={{color: 'var(--color-text-secondary)'}}>{key.ttl > 0 ? formatTTL(key.ttl) : 'Persistent'}</td>
+                  <td className="p-4">
+                    <div className="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="p-1 hover:text-white" style={{color: 'var(--color-text-secondary)'}}><Eye className="w-3.5 h-3.5" /></button>
+                      <button className="p-1 hover:text-red-500" style={{color: 'var(--color-text-secondary)'}}><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredKeys.length === 0 && (
+                <tr><td colSpan={6} className="p-6 text-center" style={{color: 'var(--color-text-secondary)'}}>No big keys found</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + ' GB';
+  if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+  if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return bytes + ' B';
+}
+
+function formatTTL(seconds: number): string {
+  if (seconds >= 86400) return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
+  if (seconds >= 3600) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+  if (seconds >= 60) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  return `${seconds}s`;
 }

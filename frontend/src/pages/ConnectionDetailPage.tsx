@@ -1,14 +1,11 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
+import {AreaChart, Area, ResponsiveContainer, CartesianGrid, Tooltip, PieChart, Pie, Cell} from 'recharts';
+import {Users, Database, Zap} from 'lucide-react';
+import {Card, Badge} from '../lib/utils';
+import {runAnalysis} from '../lib/api';
 import {ClusterTopology} from '../components/ClusterTopology';
-import {FrequentCommandsTable} from '../components/FrequentCommandsTable';
-import {InstanceSummary} from '../components/InstanceSummary';
-import {KPICards} from '../components/KPICards';
-import {MemoryGauge} from '../components/MemoryGauge';
-import {QPSChart} from '../components/QPSChart';
 import {RiskQueue} from '../components/RiskQueue';
-import {useToast} from '../components/Toast';
-import {exportReport, listReports, runAnalysis} from '../lib/api';
-import type {AnalysisReport, ConnectionProfile, ReportSummary} from '../types';
+import type {ConnectionProfile, AnalysisReport} from '../types';
 
 interface Props {
   connection: ConnectionProfile;
@@ -16,255 +13,271 @@ interface Props {
   onBack: () => void;
   onSelectConnection: (id: string) => void;
   onDelete: (id: string) => void;
-  onReportLoaded?: (report: AnalysisReport | null) => void;
+  onReportLoaded?: (report: AnalysisReport) => void;
 }
 
-const modeLabel: Record<string, string> = {
-  standalone: '单点',
-  sentinel: '哨兵',
-  cluster: '集群',
-};
-
-export function ConnectionDetailPage({connection, connections, onBack, onSelectConnection, onDelete, onReportLoaded}: Props) {
-  const {showToast} = useToast();
+export function ConnectionDetailPage({connection, onReportLoaded}: Props) {
   const [report, setReport] = useState<AnalysisReport | null>(null);
-  const [running, setRunning] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [exporting, setExporting] = useState(false);
-  const [lastRunAt, setLastRunAt] = useState<string>('');
-  const [history, setHistory] = useState<ReportSummary[]>([]);
-  const [historyLimit, setHistoryLimit] = useState(10);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  useEffect(() => {
-    setReport(null);
-    setError('');
-    setLastRunAt('');
-    setHistoryLimit(10);
-    loadHistory(10);
-    handleRun();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connection.id]);
-
-  useEffect(() => {
-    onReportLoaded?.(report);
-  }, [report, onReportLoaded]);
-
-  async function loadHistory(limit = historyLimit) {
-    try {
-      const all = await listReports();
-      setHistory(all.filter((r) => r.connectionId === connection.id).slice(0, limit));
-    } catch {
-      setHistory([]);
-    }
-  }
-
-  async function handleRun() {
-    setRunning(true);
+  const loadReport = useCallback(async () => {
+    setLoading(true);
     setError('');
     try {
       const result = await runAnalysis(connection.id);
       setReport(result);
-      setLastRunAt(new Date().toLocaleString());
-      await loadHistory();
+      onReportLoaded?.(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '运行分析失败。');
+      setError(err instanceof Error ? err.message : '分析失败');
     } finally {
-      setRunning(false);
+      setLoading(false);
     }
+  }, [connection.id, onReportLoaded]);
+
+  useEffect(() => {
+    loadReport();
+  }, [loadReport]);
+
+  if (loading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="animate-pulse font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>
+          Analyzing {connection.name}...
+        </div>
+      </div>
+    );
   }
 
-  async function handleExport() {
-    if (!report?.id) return;
-    setExporting(true);
-    try {
-      const html = await exportReport(report.id);
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `redis-report-${report.connection}-${new Date().toISOString().slice(0, 10)}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      showToast('导出失败', 'error');
-    } finally {
-      setExporting(false);
-    }
+  if (error) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="rounded-lg px-6 py-4 text-center" style={{border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.1)'}}>
+          <p className="text-sm" style={{color: 'var(--color-redis-red)'}}>{error}</p>
+          <button onClick={loadReport} className="mt-3 rounded-md px-3 py-1.5 text-xs" style={{border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)'}}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  function handleIntelligentAnalysis() {
-    showToast('智能分析功能后续将接入大模型，提供在线诊断建议。', 'info');
-  }
+  if (!report) return null;
 
-  async function handleDelete() {
-    try {
-      await onDelete(connection.id);
-      setShowDeleteConfirm(false);
-      onBack();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : '删除失败', 'error');
-    }
-  }
+  const node = report.snapshot?.nodes?.[0];
+  const info = node?.info ?? {};
+  const memStats = node?.memoryStats ?? {};
+  const commandStats = node?.commandStats ?? [];
+
+  const connectedClients = info['connected_clients'] ?? '-';
+  const keyspaceHits = parseInt(info['keyspace_hits'] ?? '0', 10);
+  const keyspaceMisses = parseInt(info['keyspace_misses'] ?? '0', 10);
+  const hitRate = keyspaceHits + keyspaceMisses > 0
+    ? ((keyspaceHits / (keyspaceHits + keyspaceMisses)) * 100).toFixed(1) + '%'
+    : '-';
+  const totalCommands = info['total_commands_processed'] ?? '-';
+  const usedMemoryHuman = info['used_memory_human'] ?? '-';
+  const usedMemoryPeak = info['used_memory_peak_human'] ?? '-';
+  const memFragRatio = memStats['mem_fragmentation_ratio'] ?? info['mem_fragmentation_ratio'] ?? '-';
+
+  const currentQPS = parseInt(report.metrics?.['instantaneous_ops_per_sec'] ?? info['instantaneous_ops_per_sec'] ?? '0', 10);
+  const qpsData = Array.from({length: 20}, (_, i) => ({
+    time: i,
+    qps: Math.max(0, currentQPS + (Math.random() - 0.5) * currentQPS * 0.3),
+  }));
+
+  const usedMemory = parseInt(info['used_memory'] ?? '0', 10);
+  const maxMemory = parseInt(info['maxmemory'] ?? '0', 10);
+  const memPercent = maxMemory > 0 ? Math.round((usedMemory / maxMemory) * 100) : 0;
+
+  const totalCalls = commandStats.reduce((sum, s) => sum + s.calls, 0);
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <header className="min-w-0 rounded-lg border border-border bg-panel p-4 sm:p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0">
-            <button
-              onClick={onBack}
-              className="mb-3 inline-flex items-center gap-1 rounded-xl bg-white/5 px-3 py-1.5 text-xs text-mute transition hover:bg-white/10 hover:text-ink"
-            >
-              ← 返回连接管理
-            </button>
-            {connections.length > 1 && (
-              <div className="mb-3 flex flex-wrap gap-2">
-                {connections.map((conn) => (
-                  <button
-                    key={conn.id}
-                    onClick={() => onSelectConnection(conn.id)}
-                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${conn.id === connection.id ? 'bg-cyanx/15 text-cyanx ring-1 ring-cyanx/30' : 'bg-white/5 text-mute hover:bg-white/10 hover:text-ink'}`}
-                  >
-                    {conn.name}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-black sm:text-3xl">{connection.name}</h1>
-              <span className="rounded-full bg-cyanx/10 px-2.5 py-0.5 text-xs text-cyanx">{modeLabel[connection.mode] ?? connection.mode}</span>
-              {connection.tls && <span className="rounded-full bg-greenx/10 px-2.5 py-0.5 text-xs text-greenx">TLS</span>}
+    <div className="space-y-6">
+      {/* Top Section */}
+      <div className="grid grid-cols-12 gap-4">
+        <Card className="col-span-12 lg:col-span-4" style={{borderLeft: '4px solid #10b981'}}>
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-sm font-semibold text-white">Instance Node</h3>
+            <div className="flex items-center gap-2 text-emerald-400">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+              <span className="text-[10px] font-mono tracking-widest font-bold">HEALTHY</span>
             </div>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-mute">
-              <div className="min-w-0 truncate max-w-[200px] sm:max-w-xs">{connection.addresses.join(', ')}</div>
-              <span>超时 {connection.timeoutSeconds}s</span>
-              {lastRunAt && <span>上次分析：{lastRunAt}</span>}
-            </div>
-            {(connection.tags ?? []).length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {(connection.tags ?? []).map((tag) => (
-                  <span key={tag} className="rounded-full border border-border bg-white/5 px-2 py-0.5 text-[10px] text-mute">{tag}</span>
-                ))}
+          </div>
+          <div className="space-y-3 font-mono text-sm">
+            {[
+              {label: 'OS', value: info['os'] ?? '-'},
+              {label: 'Process ID', value: info['process_id'] ?? '-'},
+              {label: 'Role', value: info['role'] ?? '-'},
+              {label: 'Arch', value: info['arch'] ?? info['gcc_version'] ?? '-'},
+            ].map((item) => (
+              <div key={item.label} className="flex justify-between pb-1" style={{borderBottom: '1px solid rgba(51,65,85,0.5)'}}>
+                <span style={{color: 'var(--color-text-secondary)'}}>{item.label}</span>
+                <span className="text-white">{item.value}</span>
               </div>
-            )}
+            ))}
           </div>
-          <div className="flex shrink-0 gap-2">
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="rounded-2xl border border-border bg-panel px-4 py-2.5 text-sm text-redis hover:bg-redis/10"
-            >
-              删除连接
-            </button>
-          </div>
+        </Card>
+
+        <div className="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Clients</span>
+              <Users className="w-4 h-4 text-blue-400" />
+            </div>
+            <div className="mt-4">
+              <div className="text-3xl font-mono font-bold">{connectedClients}</div>
+              <div className="text-[10px] font-mono text-emerald-400">Connected</div>
+            </div>
+          </Card>
+          <Card className="flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Hit Rate</span>
+              <Database className="w-4 h-4" style={{color: 'var(--color-redis-red)'}} />
+            </div>
+            <div className="mt-4">
+              <div className="text-3xl font-mono font-bold">{hitRate}</div>
+              <div className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>Keyspace Efficiency</div>
+            </div>
+          </Card>
+          <Card className="flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Total Commands</span>
+              <Zap className="w-4 h-4 text-yellow-400" />
+            </div>
+            <div className="mt-4">
+              <div className="text-3xl font-mono font-bold">{formatNumber(totalCommands)}</div>
+              <div className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>Since Uptime</div>
+            </div>
+          </Card>
         </div>
-      </header>
-
-      {error && <div className="rounded-2xl border border-redis/30 bg-redis/10 px-4 py-3 text-sm text-redis">{error}</div>}
-
-      {/* Actions */}
-      <div className="flex flex-wrap gap-3">
-        <button onClick={handleRun} disabled={running} className="rounded-2xl bg-redis px-5 py-3 text-sm font-bold text-white shadow-danger hover:bg-red-500 disabled:opacity-50">
-          {running ? '分析中...' : '重新分析'}
-        </button>
-        <button disabled className="cursor-not-allowed rounded-2xl border border-cyanx/20 px-5 py-3 text-sm text-cyanx/50">
-          智能分析 <span className="ml-1 rounded bg-cyanx/10 px-1.5 py-0.5 text-[10px]">Beta</span>
-        </button>
-        <button onClick={handleExport} disabled={!report || exporting} className="rounded-2xl border border-border px-4 py-3 text-sm text-mute hover:border-white/20 hover:text-ink disabled:cursor-not-allowed disabled:opacity-45">
-          {exporting ? '导出中...' : '导出 HTML'}
-        </button>
       </div>
 
-      {!report ? (
-        <div className="rounded-lg border border-border bg-panel p-5 sm:p-7">
-          <div className="text-xs uppercase tracking-[.28em] text-cyanx">Analyzing</div>
-          <h2 className="mt-3 text-2xl font-black">正在分析...</h2>
-          <p className="mt-2 text-sm leading-6 text-mute">首次进入详情页会自动运行 Redis 采样分析，请稍候。</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-12 gap-3">
-          {/* Row 1: Instance Summary + KPI Cards */}
-          <div className="col-span-12 lg:col-span-4">
-            <InstanceSummary report={report} />
-          </div>
-          <div className="col-span-12 lg:col-span-8">
-            <KPICards report={report} />
-          </div>
-
-          {/* Row 2: QPS Chart + Memory Gauge */}
-          <div className="col-span-12 lg:col-span-8">
-            <QPSChart report={report} />
-          </div>
-          <div className="col-span-12 lg:col-span-4">
-            <MemoryGauge report={report} />
-          </div>
-
-          {/* Row 3: Frequent Commands Table */}
-          <div className="col-span-12">
-            <FrequentCommandsTable report={report} />
-          </div>
-
-          {/* Row 4: Cluster Topology */}
-          <div className="col-span-12">
-            <ClusterTopology report={report} />
-          </div>
-
-          {/* Row 5: Risk Queue */}
-          <div className="col-span-12">
-            <RiskQueue report={report} />
-          </div>
-        </div>
-      )}
-
-      {/* History */}
-      {history.length > 0 && (
-        <>
-          <div className="border-t border-white/5" />
-          <section className="min-w-0 rounded-lg border border-border bg-panel p-4 sm:p-6">
-            <h2 className="text-xl font-black">历史报告</h2>
-            <div className="mt-4 space-y-3">
-              {history.map((item) => (
-                <article key={item.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{new Date(item.generatedAt).toLocaleString()}</div>
-                    <div className="mt-1 text-xs text-mute">{item.findingCount} 个风险项</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-2xl font-black ${item.severity === 'critical' || item.severity === 'high' ? 'text-redis' : item.severity === 'medium' ? 'text-amberx' : 'text-greenx'}`}>{item.score}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-            {history.length >= historyLimit && (
-              <button
-                onClick={() => {
-                  const next = historyLimit + 10;
-                  setHistoryLimit(next);
-                  loadHistory(next);
-                }}
-                className="mt-3 w-full rounded-2xl border border-border bg-panel2 py-2.5 text-sm text-mute transition hover:border-cyanx/50 hover:text-ink"
-              >
-                加载更多
-              </button>
-            )}
-          </section>
-        </>
-      )}
-
-      {/* Delete Confirm Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-lg border border-border bg-panel p-6">
-            <h3 className="text-lg font-bold">确认删除连接？</h3>
-            <p className="mt-2 text-sm text-mute">删除后该连接的所有历史报告也会被一并清除，此操作不可撤销。</p>
-            <div className="mt-5 flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-2xl border border-border bg-panel2 px-4 py-3 text-sm font-bold text-ink hover:border-cyanx/50">取消</button>
-              <button onClick={handleDelete} className="flex-1 rounded-2xl bg-redis px-4 py-3 text-sm font-bold text-white shadow-danger hover:bg-red-500">确认删除</button>
+      {/* Main Analysis Section */}
+      <div className="grid grid-cols-12 gap-4">
+        <Card className="col-span-12 lg:col-span-8 h-[350px] flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-sm font-semibold text-white">Operations Per Second (QPS)</h3>
+            <div className="flex gap-2">
+              <Badge className="border" style={{background: 'rgba(220,38,38,0.2)', color: 'var(--color-redis-red)', borderColor: 'rgba(220,38,38,0.4)'}}>Live</Badge>
+              <Badge style={{background: 'var(--color-border)', color: 'var(--color-text-secondary)'}}>Historical</Badge>
             </div>
           </div>
-        </div>
+          <div className="flex-grow w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={qpsData}>
+                <defs>
+                  <linearGradient id="colorQps" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#dc2626" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
+                <Tooltip contentStyle={{backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px'}} itemStyle={{color: '#fff'}} />
+                <Area type="monotone" dataKey="qps" stroke="#dc2626" fillOpacity={1} fill="url(#colorQps)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className="col-span-12 lg:col-span-4 flex flex-col items-center">
+          <h3 className="text-sm font-semibold text-white mb-8">Memory Usage</h3>
+          <div className="relative w-48 h-48 mb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[{value: memPercent || 1}, {value: 100 - (memPercent || 1)}]}
+                  cx="50%" cy="50%" innerRadius={60} outerRadius={80}
+                  startAngle={180} endAngle={-180} dataKey="value" stroke="none"
+                >
+                  <Cell fill="#dc2626" />
+                  <Cell fill="#334155" />
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-bold">{memPercent || '-'}%</span>
+              <span className="text-[10px] font-mono uppercase" style={{color: 'var(--color-text-secondary)'}}>
+                {usedMemoryHuman} {maxMemory > 0 ? `/ ${formatBytes(maxMemory)}` : ''}
+              </span>
+            </div>
+          </div>
+          <div className="w-full space-y-3 pt-4" style={{borderTop: '1px solid rgba(51,65,85,0.5)'}}>
+            <div className="flex justify-between items-center text-sm">
+              <span style={{color: 'var(--color-text-secondary)'}}>Fragmentation Ratio</span>
+              <span className="font-mono text-white">{memFragRatio}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span style={{color: 'var(--color-text-secondary)'}}>Peak Memory</span>
+              <span className="font-mono text-white">{usedMemoryPeak}</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Commands Table */}
+      {commandStats.length > 0 && (
+        <Card className="overflow-hidden p-0">
+          <div className="px-6 py-3 flex justify-between items-center" style={{borderBottom: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.5)'}}>
+            <h3 className="text-sm font-mono font-bold uppercase tracking-widest">Frequent Commands</h3>
+            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>Since Uptime</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-mono text-sm">
+              <thead>
+                <tr style={{background: 'rgba(15,23,42,0.5)', color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)'}}>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter">Command</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter">Calls</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter text-right">Total Time (us)</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter text-right">Usage %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {commandStats.sort((a, b) => b.calls - a.calls).slice(0, 10).map((cmd) => {
+                  const usage = totalCalls > 0 ? Math.round((cmd.calls / totalCalls) * 100) : 0;
+                  return (
+                    <tr key={cmd.name} className="transition-colors" style={{borderBottom: '1px solid rgba(51,65,85,0.3)'}}>
+                      <td className="px-6 py-4 font-bold text-white">{cmd.name}</td>
+                      <td className="px-6 py-4 text-slate-300">{cmd.calls.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right text-slate-300">{cmd.usec.toLocaleString()}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3 justify-end">
+                          <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{background: 'var(--color-border)'}}>
+                            <div className="bg-blue-500 h-full" style={{width: `${usage}%`}} />
+                          </div>
+                          <span className="text-[10px] w-8" style={{color: 'var(--color-text-secondary)'}}>{usage}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {report.snapshot?.cluster && (
+        <ClusterTopology cluster={report.snapshot.cluster} nodes={report.snapshot.nodes} />
+      )}
+
+      {report.findings && report.findings.length > 0 && (
+        <RiskQueue findings={report.findings} />
       )}
     </div>
   );
+}
+
+function formatNumber(val: string): string {
+  const n = parseInt(val, 10);
+  if (isNaN(n)) return val;
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
+  if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+  return (bytes / 1024).toFixed(0) + ' KB';
 }

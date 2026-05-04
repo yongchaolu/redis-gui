@@ -1,61 +1,35 @@
-import {Icon} from './Icon';
+import {HardDrive, Users, Cpu, Heart} from 'lucide-react';
 
 interface Props {
   info: Record<string, string>;
 }
 
-interface CardDef {
-  icon: string;
-  label: string;
-  value: string;
-  sub: string;
-  color: string;
-}
+const ICONS = [HardDrive, Users, Cpu, Heart];
+const COLORS = ['text-red-400', 'text-blue-400', 'text-green-400', 'text-yellow-400'];
 
 export function ConfigSummaryCards({info}: Props) {
-  const cards: CardDef[] = [
-    {
-      icon: 'memory',
-      label: 'Memory',
-      value: info['used_memory_human'] ?? '-',
-      sub: `Peak: ${info['used_memory_peak_human'] ?? '-'}`,
-      color: 'text-redis',
-    },
-    {
-      icon: 'group',
-      label: 'Clients',
-      value: info['connected_clients'] ?? '-',
-      sub: `Max: ${info['maxclients'] ?? '-'}`,
-      color: 'text-cyanx',
-    },
-    {
-      icon: 'speed',
-      label: 'CPU',
-      value: `${(parseFloat(info['used_cpu_sys'] ?? '0') + parseFloat(info['used_cpu_user'] ?? '0')).toFixed(2)}s`,
-      sub: `Sys: ${info['used_cpu_sys'] ?? '-'} / User: ${info['used_cpu_user'] ?? '-'}`,
-      color: 'text-greenx',
-    },
-    {
-      icon: 'favorite',
-      label: 'Health',
-      value: info['redis_version'] ?? '-',
-      sub: `Uptime: ${formatUptime(parseInt(info['uptime_in_seconds'] ?? '0', 10))}`,
-      color: 'text-amberx',
-    },
+  const cards = [
+    {label: 'Memory', value: info['used_memory_human'] ?? '-', sub: `Peak: ${info['used_memory_peak_human'] ?? '-'}`},
+    {label: 'Clients', value: info['connected_clients'] ?? '-', sub: `Max: ${info['maxclients'] ?? '-'}`},
+    {label: 'CPU', value: `${(parseFloat(info['used_cpu_sys'] ?? '0') + parseFloat(info['used_cpu_user'] ?? '0')).toFixed(2)}s`, sub: `Sys: ${info['used_cpu_sys'] ?? '-'} / User: ${info['used_cpu_user'] ?? '-'}`},
+    {label: 'Health', value: info['redis_version'] ?? '-', sub: `Uptime: ${formatUptime(parseInt(info['uptime_in_seconds'] ?? '0', 10))}`},
   ];
 
   return (
     <div className="grid grid-cols-4 gap-3">
-      {cards.map((c) => (
-        <div key={c.label} className="rounded-lg border border-border bg-panel p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Icon name={c.icon} className={`text-[18px] ${c.color}`} />
-            <span className="text-xs font-medium uppercase tracking-wide text-mute">{c.label}</span>
+      {cards.map((c, i) => {
+        const Icon = ICONS[i];
+        return (
+          <div key={c.label} className="rounded-lg p-4" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
+            <div className="mb-2 flex items-center gap-2">
+              <Icon className={`w-4 h-4 ${COLORS[i]}`} />
+              <span className="text-xs font-medium uppercase tracking-wide" style={{color: 'var(--color-text-secondary)'}}>{c.label}</span>
+            </div>
+            <div className="font-mono text-lg font-bold text-white">{c.value}</div>
+            <div className="mt-1 text-[11px]" style={{color: 'var(--color-text-secondary)'}}>{c.sub}</div>
           </div>
-          <div className="font-mono text-lg font-bold text-ink">{c.value}</div>
-          <div className="mt-1 text-[11px] text-mute">{c.sub}</div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

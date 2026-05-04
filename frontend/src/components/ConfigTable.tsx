@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'react';
-import {Icon} from './Icon';
+import {SlidersHorizontal, Search, Copy, Check} from 'lucide-react';
 
 interface Props {
   params: Array<[string, string]>;
@@ -29,77 +29,61 @@ export function ConfigTable({params, category}: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-border bg-panel">
-      <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
-        <Icon name="tune" className="text-[16px] text-mute" />
-        <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-white">
-          {category}
-        </h3>
-        <span className="font-mono text-[10px] text-mute">{filtered.length} params</span>
-        <div className="ml-auto flex items-center gap-2 rounded-md border border-border bg-coal px-2 py-1">
-          <Icon name="search" className="text-[14px] text-mute" />
+    <div className="rounded-lg" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
+      <div className="flex items-center gap-3 px-4 py-2.5" style={{borderBottom: '1px solid var(--color-border)'}}>
+        <SlidersHorizontal className="w-4 h-4" style={{color: 'var(--color-text-secondary)'}} />
+        <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-white">{category}</h3>
+        <span className="font-mono text-[10px]" style={{color: 'var(--color-text-secondary)'}}>{filtered.length} params</span>
+        <div className="ml-auto flex items-center gap-2 rounded-md px-2 py-1" style={{border: '1px solid var(--color-border)', background: 'var(--color-obsidian)'}}>
+          <Search className="w-3.5 h-3.5" style={{color: 'var(--color-text-secondary)'}} />
           <input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
             placeholder="Filter parameters..."
-            className="w-40 bg-transparent text-xs text-ink outline-none placeholder:text-mute"
+            className="w-40 bg-transparent text-xs text-white outline-none"
+            style={{color: 'var(--color-text-secondary)'}}
           />
         </div>
       </div>
       <div className="max-h-[400px] overflow-y-auto">
         <table className="w-full text-left font-mono text-xs">
-          <thead className="sticky top-0 border-b border-border bg-panel2/50 text-mute">
+          <thead className="sticky top-0" style={{borderBottom: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.5)', color: 'var(--color-text-secondary)'}}>
             <tr>
               <th className="px-4 py-2 font-medium uppercase tracking-tight">Parameter</th>
               <th className="px-4 py-2 font-medium uppercase tracking-tight">Value</th>
               <th className="w-20 px-4 py-2 font-medium uppercase tracking-tight text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/30">
+          <tbody>
             {paged.map(([key, value]) => (
-              <tr key={key} className="hover:bg-panel2/30">
-                <td className="px-4 py-2 text-ink">{key}</td>
+              <tr key={key} className="transition-colors" style={{borderBottom: '1px solid rgba(51,65,85,0.3)'}}>
+                <td className="px-4 py-2 text-white">{key}</td>
                 <td className="max-w-[300px] truncate px-4 py-2">
-                  <span className="rounded bg-surfaceHigh px-1.5 py-0.5 text-[11px] text-cyanx">{value}</span>
+                  <span className="rounded px-1.5 py-0.5 text-[11px] text-blue-400" style={{background: 'var(--color-border)'}}>{value}</span>
                 </td>
                 <td className="px-4 py-2 text-right">
                   <button
                     onClick={() => handleCopy(key, value)}
-                    className="rounded p-1 text-mute transition-colors hover:bg-panel2 hover:text-ink"
+                    className="rounded p-1 transition-colors hover:text-white"
+                    style={{color: 'var(--color-text-secondary)'}}
                     title="Copy CONFIG SET command"
                   >
-                    <Icon name={copied === key ? 'check' : 'content_copy'} className="text-[14px]" />
+                    {copied === key ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </td>
               </tr>
             ))}
             {paged.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-mute">No matching parameters</td>
-              </tr>
+              <tr><td colSpan={3} className="px-4 py-6 text-center" style={{color: 'var(--color-text-secondary)'}}>No matching parameters</td></tr>
             )}
           </tbody>
         </table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border px-4 py-2">
-          <button
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-            className="rounded px-2 py-1 text-[11px] text-mute transition-colors hover:bg-panel2 hover:text-ink disabled:opacity-30"
-          >
-            Previous
-          </button>
-          <span className="font-mono text-[10px] text-mute">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-            className="rounded px-2 py-1 text-[11px] text-mute transition-colors hover:bg-panel2 hover:text-ink disabled:opacity-30"
-          >
-            Next
-          </button>
+        <div className="flex items-center justify-between px-4 py-2" style={{borderTop: '1px solid var(--color-border)'}}>
+          <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} className="rounded px-2 py-1 text-[11px] transition-colors hover:text-white disabled:opacity-30" style={{color: 'var(--color-text-secondary)'}}>Previous</button>
+          <span className="font-mono text-[10px]" style={{color: 'var(--color-text-secondary)'}}>{page + 1} / {totalPages}</span>
+          <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)} className="rounded px-2 py-1 text-[11px] transition-colors hover:text-white disabled:opacity-30" style={{color: 'var(--color-text-secondary)'}}>Next</button>
         </div>
       )}
     </div>

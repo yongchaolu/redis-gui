@@ -1,0 +1,6 @@
+{
+  "name": "Redis Insight Web",
+  "description": "A high-performance Redis monitoring dashboard with real-time performance tracking, memory analysis, and configuration management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
