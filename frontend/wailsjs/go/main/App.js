@@ -10,8 +10,24 @@ export function ExportReport(arg1) {
   return window['go']['main']['App']['ExportReport'](arg1);
 }
 
+export function GetConfig(arg1) {
+  return window['go']['main']['App']['GetConfig'](arg1);
+}
+
+export function GetRealtimeOPS(arg1) {
+  return window['go']['main']['App']['GetRealtimeOPS'](arg1);
+}
+
 export function GetReport(arg1) {
   return window['go']['main']['App']['GetReport'](arg1);
+}
+
+export function GetServerInfo(arg1) {
+  return window['go']['main']['App']['GetServerInfo'](arg1);
+}
+
+export function GetSlowLog(arg1) {
+  return window['go']['main']['App']['GetSlowLog'](arg1);
 }
 
 export function ListConnections() {

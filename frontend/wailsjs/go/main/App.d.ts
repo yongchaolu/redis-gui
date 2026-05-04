@@ -6,7 +6,15 @@ export function DeleteConnection(arg1:string):Promise<void>;
 
 export function ExportReport(arg1:string):Promise<string>;
 
+export function GetConfig(arg1:string):Promise<Record<string, string>>;
+
+export function GetRealtimeOPS(arg1:string):Promise<number>;
+
 export function GetReport(arg1:string):Promise<model.AnalysisReport>;
+
+export function GetServerInfo(arg1:string):Promise<Record<string, string>>;
+
+export function GetSlowLog(arg1:string):Promise<Array<model.SlowLogEntry>>;
 
 export function ListConnections():Promise<Array<model.ConnectionProfile>>;
 

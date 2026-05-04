@@ -26,6 +26,7 @@ export namespace model {
 	    slotsFail: number;
 	    rawInfo?: string;
 	    rawNodes?: string;
+	    error?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ClusterSample(source);
@@ -40,6 +41,7 @@ export namespace model {
 	        this.slotsFail = source["slotsFail"];
 	        this.rawInfo = source["rawInfo"];
 	        this.rawNodes = source["rawNodes"];
+	        this.error = source["error"];
 	    }
 	}
 	export class BigKey {
