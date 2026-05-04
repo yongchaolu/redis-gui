@@ -51,6 +51,13 @@ export async function runAnalysis(connectionId: string): Promise<AnalysisReport>
   throw new Error(`当前不在 Wails 桌面环境，无法对 ${connectionId} 运行真实 Redis 分析。`);
 }
 
+export async function getReport(reportId: string): Promise<AnalysisReport> {
+  if (app()?.GetReport) {
+    return app()!.GetReport(reportId) as Promise<AnalysisReport>;
+  }
+  throw new Error(`当前不在 Wails 桌面环境，无法获取报告 ${reportId}。`);
+}
+
 export async function listReports(): Promise<ReportSummary[]> {
   if (app()?.ListReports) {
     const result = await app()!.ListReports();

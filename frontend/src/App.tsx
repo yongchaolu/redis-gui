@@ -1,22 +1,24 @@
 import {useEffect, useState} from 'react';
-import {LayoutDashboard, Activity, Layers, Settings, Database, RefreshCcw, LogOut, Plug} from 'lucide-react';
+import {LayoutDashboard, Activity, Layers, Settings, Database, RefreshCcw, LogOut, Plug, FileText} from 'lucide-react';
 import {ConnectionsPage} from './pages/ConnectionsPage';
 import {ConnectionDetailPage} from './pages/ConnectionDetailPage';
 import {MonitorPage} from './pages/MonitorPage';
 import {MemoryAnalysisPage} from './pages/MemoryAnalysisPage';
 import {ConfigPage} from './pages/ConfigPage';
+import {ReportsPage} from './pages/ReportsPage';
 import {deleteConnection, listConnections} from './lib/api';
 import {cn} from './lib/utils';
 import type {ConnectionProfile, AnalysisReport} from './types';
 import {motion, AnimatePresence} from 'motion/react';
 
-type PageKey = 'connections' | 'detail' | 'monitor' | 'memory' | 'config';
+type PageKey = 'connections' | 'detail' | 'monitor' | 'memory' | 'config' | 'reports';
 
 const NAV_ITEMS = [
   {id: 'detail' as PageKey, label: 'Overview', icon: LayoutDashboard},
   {id: 'monitor' as PageKey, label: 'Real-time Monitor', icon: Activity},
   {id: 'memory' as PageKey, label: 'Memory Analysis', icon: Layers},
   {id: 'config' as PageKey, label: 'Configuration', icon: Settings},
+  {id: 'reports' as PageKey, label: 'Reports', icon: FileText},
   {id: 'connections' as PageKey, label: 'Connections', icon: Plug},
 ];
 
@@ -232,6 +234,9 @@ export default function App() {
               )}
               {page === 'config' && selectedConnection && (
                 <ConfigPage connection={selectedConnection} />
+              )}
+              {page === 'reports' && (
+                <ReportsPage />
               )}
               {page !== 'connections' && !selectedConnection && (
                 <div className="flex flex-col items-center justify-center min-h-[400px]" style={{color: 'var(--color-text-secondary)'}}>

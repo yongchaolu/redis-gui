@@ -233,7 +233,7 @@ export function ConnectionDetailPage({connection, onReportLoaded}: Props) {
                 </tr>
               </thead>
               <tbody>
-                {commandStats.sort((a, b) => b.calls - a.calls).slice(0, 10).map((cmd) => {
+                {[...commandStats].sort((a, b) => b.calls - a.calls).slice(0, 10).map((cmd) => {
                   const usage = totalCalls > 0 ? Math.round((cmd.calls / totalCalls) * 100) : 0;
                   return (
                     <tr key={cmd.name} className="transition-colors" style={{borderBottom: '1px solid rgba(51,65,85,0.3)'}}>

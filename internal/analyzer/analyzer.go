@@ -97,6 +97,10 @@ func Analyze(snapshot model.SampleSnapshot) model.AnalysisReport {
 	}
 
 	if snapshot.Cluster != nil {
+		if snapshot.Cluster.Error != "" {
+			breakdown["集群"] -= 45
+			findings = append(findings, finding(model.SeverityCritical, "cluster_sampling", "集群采样失败", snapshot.Cluster.Error, "确认集群节点网络连通性、认证和 TLS 配置。", "cluster"))
+		}
 		if strings.ToLower(snapshot.Cluster.State) != "" && strings.ToLower(snapshot.Cluster.State) != "ok" {
 			breakdown["集群"] -= 30
 			findings = append(findings, finding(model.SeverityCritical, "cluster_state", "集群状态异常", fmt.Sprintf("cluster_state=%s。", snapshot.Cluster.State), "优先处理 fail 节点、槽位迁移和节点握手问题。", "cluster"))
