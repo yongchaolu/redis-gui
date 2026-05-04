@@ -155,6 +155,26 @@ export function MemoryAnalysisPage({connection}: Props) {
           ) : (
             <div className="flex-grow flex items-center justify-center font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>No data</div>
           )}
+          <div className="mt-8 pt-4" style={{borderTop: '1px solid rgba(51,65,85,0.3)'}}>
+            <button
+              onClick={() => {
+                if (!report) return;
+                const rows = [['Type', 'Size', 'Percentage']];
+                for (const item of typeDistribution) rows.push([item.type, String(item.size), `${item.pct}%`]);
+                const csv = rows.map((r) => r.join(',')).join('\n');
+                const blob = new Blob([csv], {type: 'text/csv'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'memory-analysis.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="w-full text-center font-mono text-blue-400 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+            >
+              Download CSV Report
+            </button>
+          </div>
         </Card>
       </div>
 

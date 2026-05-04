@@ -181,6 +181,15 @@ export default function App() {
                   <RefreshCcw className="w-4 h-4" />
                 </button>
                 <button
+                  onClick={() => handleNavigate('config')}
+                  className="p-2 transition-colors"
+                  style={{color: 'var(--color-text-secondary)'}}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'white')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => handleNavigate('connections')}
                   className="px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest text-white transition-all active:scale-95 hover:brightness-110"
                   style={{background: 'var(--color-redis-red)'}}
