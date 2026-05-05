@@ -31,7 +31,7 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
   function handleNew() {
     setEditing({
       id: '', name: '', mode: 'standalone', addresses: ['127.0.0.1:6379'],
-      sentinelMaster: '', username: '', password: '', tls: false, timeoutSeconds: 3,
+      sentinelMaster: '', username: '', password: '', db: 0, tls: false, timeoutSeconds: 3,
       tags: [],
     } as ConnectionProfile);
     setTestResult('');
@@ -161,9 +161,16 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
   const [name, setName] = useState(profile.name);
   const [addresses, setAddresses] = useState(profile.addresses.join(', '));
   const [sentinelMaster, setSentinelMaster] = useState(profile.sentinelMaster || '');
+  const [sentinelPassword, setSentinelPassword] = useState(profile.sentinelPassword || '');
   const [username, setUsername] = useState(profile.username || '');
   const [password, setPassword] = useState(profile.password || '');
+  const [db, setDb] = useState(profile.db ?? 0);
   const [tls, setTls] = useState(profile.tls);
+  const [tlsCertFile, setTlsCertFile] = useState(profile.tlsCertFile || '');
+  const [tlsKeyFile, setTlsKeyFile] = useState(profile.tlsKeyFile || '');
+  const [tlsCACertFile, setTlsCACertFile] = useState(profile.tlsCACertFile || '');
+  const [tlsSkipVerify, setTlsSkipVerify] = useState(profile.tlsSkipVerify || false);
+  const [tlsServerName, setTlsServerName] = useState(profile.tlsServerName || '');
   const [timeoutSeconds, setTimeoutSeconds] = useState(profile.timeoutSeconds || 3);
   const [tags, setTags] = useState((profile.tags ?? []).join(', '));
   const [saving, setSaving] = useState(false);
@@ -174,7 +181,8 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
       ...profile, name, mode,
       addresses: addresses.split(',').map((a) => a.trim()).filter(Boolean),
       sentinelMaster: mode === 'sentinel' ? sentinelMaster : '',
-      username, password, tls, timeoutSeconds,
+      sentinelPassword: mode === 'sentinel' ? sentinelPassword : '',
+      username, password, db, tls, tlsCertFile, tlsKeyFile, tlsCACertFile, tlsSkipVerify, tlsServerName, timeoutSeconds,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
     };
   }
@@ -256,10 +264,16 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
           </div>
 
           {mode === 'sentinel' && (
-            <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-              Sentinel Master Name
-              <input value={sentinelMaster} onChange={(e) => setSentinelMaster(e.target.value)} placeholder="mymaster" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
-            </label>
+            <>
+              <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                Sentinel Master Name
+                <input value={sentinelMaster} onChange={(e) => setSentinelMaster(e.target.value)} placeholder="mymaster" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+              </label>
+              <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                Sentinel Password <span className="opacity-50">(if different from master)</span>
+                <input type="password" value={sentinelPassword} onChange={(e) => setSentinelPassword(e.target.value)} placeholder="leave empty to use same password" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+              </label>
+            </>
           )}
 
           <div className="grid grid-cols-2 gap-3">
@@ -295,12 +309,51 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
                     <input type="checkbox" checked={tls} onChange={(e) => setTls(e.target.checked)} className="h-3.5 w-3.5 accent-blue-500" />
                     Enable TLS
                   </label>
+                  {mode === 'standalone' && (
+                    <label className="flex items-center gap-1.5 text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                      DB
+                      <select value={db} onChange={(e) => setDb(Number(e.target.value))} className="w-16 rounded px-2 py-1 text-center font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle}>
+                        {Array.from({length: 16}, (_, i) => (
+                          <option key={i} value={i}>{i}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   <label className="flex items-center gap-1.5 text-xs" style={{color: 'var(--color-text-secondary)'}}>
                     Timeout
                     <input type="number" min={1} max={60} value={timeoutSeconds} onChange={(e) => setTimeoutSeconds(Number(e.target.value))} className="w-14 rounded px-2 py-1 text-center font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
                     sec
                   </label>
                 </div>
+                {tls && (
+                  <div className="space-y-3 rounded-md p-3" style={{border: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.3)'}}>
+                    <div className="text-[10px] font-bold uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>TLS Certificate</div>
+                    <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                      CA Cert File <span className="opacity-50">(self-signed / custom CA)</span>
+                      <input value={tlsCACertFile} onChange={(e) => setTlsCACertFile(e.target.value)} placeholder="/path/to/ca.crt" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                        Client Cert File
+                        <input value={tlsCertFile} onChange={(e) => setTlsCertFile(e.target.value)} placeholder="/path/to/client.crt" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+                      </label>
+                      <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                        Client Key File
+                        <input value={tlsKeyFile} onChange={(e) => setTlsKeyFile(e.target.value)} placeholder="/path/to/client.key" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                        Server Name <span className="opacity-50">(SNI)</span>
+                        <input value={tlsServerName} onChange={(e) => setTlsServerName(e.target.value)} placeholder="optional" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+                      </label>
+                      <label className="flex items-center gap-2 self-end text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                        <input type="checkbox" checked={tlsSkipVerify} onChange={(e) => setTlsSkipVerify(e.target.checked)} className="h-3.5 w-3.5 accent-blue-500" />
+                        Skip Certificate Verification
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

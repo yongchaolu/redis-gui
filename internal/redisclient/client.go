@@ -3,7 +3,9 @@ package redisclient
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -188,7 +190,11 @@ func (s *Sampler) discoverSentinelMaster(ctx context.Context, profile model.Conn
 	}
 	var lastErr error
 	for _, addr := range profile.Addresses {
-		client := redis.NewSentinelClient(&redis.Options{Addr: addr, Password: profile.Password, Username: profile.Username, TLSConfig: tlsConfig(profile)})
+		sentinelPwd := profile.SentinelPassword
+	if sentinelPwd == "" {
+		sentinelPwd = profile.Password
+	}
+	client := redis.NewSentinelClient(&redis.Options{Addr: addr, Password: sentinelPwd, Username: profile.Username, TLSConfig: tlsConfig(profile)})
 		result, err := client.GetMasterAddrByName(ctx, profile.SentinelMaster).Result()
 		client.Close()
 		if err == nil && len(result) == 2 {
@@ -253,7 +259,7 @@ func optionsFor(profile model.ConnectionProfile, addr string) *redis.Options {
 		Addr:         addr,
 		Username:     profile.Username,
 		Password:     profile.Password,
-		DB:           0,
+		DB:           profile.DB,
 		DialTimeout:  timeout(profile),
 		ReadTimeout:  timeout(profile),
 		WriteTimeout: timeout(profile),
@@ -277,7 +283,29 @@ func tlsConfig(profile model.ConnectionProfile) *tls.Config {
 	if !profile.TLS {
 		return nil
 	}
-	return &tls.Config{MinVersion: tls.VersionTLS12}
+	tc := &tls.Config{
+		MinVersion:         tls.VersionTLS12,
+		InsecureSkipVerify: profile.TLSSkipVerify,
+	}
+	if profile.TLSServerName != "" {
+		tc.ServerName = profile.TLSServerName
+	}
+	if profile.TLSCACertFile != "" {
+		caPEM, err := os.ReadFile(profile.TLSCACertFile)
+		if err == nil {
+			pool := x509.NewCertPool()
+			if pool.AppendCertsFromPEM(caPEM) {
+				tc.RootCAs = pool
+			}
+		}
+	}
+	if profile.TLSCertFile != "" && profile.TLSKeyFile != "" {
+		cert, err := tls.LoadX509KeyPair(profile.TLSCertFile, profile.TLSKeyFile)
+		if err == nil {
+			tc.Certificates = []tls.Certificate{cert}
+		}
+	}
+	return tc
 }
 
 func firstAddress(profile model.ConnectionProfile) string {

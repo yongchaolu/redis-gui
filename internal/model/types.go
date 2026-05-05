@@ -24,12 +24,19 @@ type ConnectionProfile struct {
 	Name           string         `json:"name"`
 	Mode           ConnectionMode `json:"mode"`
 	Addresses      []string       `json:"addresses"`
-	SentinelMaster string         `json:"sentinelMaster,omitempty"`
-	Username       string         `json:"username,omitempty"`
-	Password       string         `json:"password,omitempty"`
-	TLS            bool           `json:"tls"`
-	TimeoutSeconds int            `json:"timeoutSeconds"`
-	Tags           []string       `json:"tags,omitempty"`
+	SentinelMaster   string         `json:"sentinelMaster,omitempty"`
+	SentinelPassword string         `json:"sentinelPassword,omitempty"`
+	Username         string         `json:"username,omitempty"`
+	Password         string         `json:"password,omitempty"`
+	DB               int            `json:"db"`
+	TLS              bool           `json:"tls"`
+	TLSCertFile      string         `json:"tlsCertFile,omitempty"`
+	TLSKeyFile       string         `json:"tlsKeyFile,omitempty"`
+	TLSCACertFile    string         `json:"tlsCACertFile,omitempty"`
+	TLSSkipVerify    bool           `json:"tlsSkipVerify,omitempty"`
+	TLSServerName    string         `json:"tlsServerName,omitempty"`
+	TimeoutSeconds   int            `json:"timeoutSeconds"`
+	Tags             []string       `json:"tags,omitempty"`
 	CreatedAt      time.Time      `json:"createdAt"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
 }

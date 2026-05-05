@@ -7,9 +7,16 @@ export interface ConnectionProfile {
   mode: ConnectionMode;
   addresses: string[];
   sentinelMaster?: string;
+  sentinelPassword?: string;
   username?: string;
   password?: string;
   tls: boolean;
+  tlsCertFile?: string;
+  tlsKeyFile?: string;
+  tlsCACertFile?: string;
+  tlsSkipVerify?: boolean;
+  tlsServerName?: string;
+  db: number;
   timeoutSeconds: number;
   tags?: string[];
 }

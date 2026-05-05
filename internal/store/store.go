@@ -50,33 +50,58 @@ func (s *Store) Close() error {
 }
 
 func (s *Store) migrate() error {
-	_, err := s.db.Exec(`
-CREATE TABLE IF NOT EXISTS connections (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	mode TEXT NOT NULL,
-	addresses_json TEXT NOT NULL,
-	sentinel_master TEXT NOT NULL DEFAULT '',
-	username TEXT NOT NULL DEFAULT '',
-	password_cipher TEXT NOT NULL DEFAULT '',
-	tls INTEGER NOT NULL DEFAULT 0,
-	timeout_seconds INTEGER NOT NULL DEFAULT 3,
-	tags_json TEXT NOT NULL DEFAULT '[]',
-	created_at TEXT NOT NULL,
-	updated_at TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS reports (
-	id TEXT PRIMARY KEY,
-	connection_id TEXT NOT NULL,
-	connection_name TEXT NOT NULL,
-	mode TEXT NOT NULL,
-	score INTEGER NOT NULL,
-	severity TEXT NOT NULL,
-	finding_count INTEGER NOT NULL,
-	generated_at TEXT NOT NULL,
-	report_json TEXT NOT NULL
-);`)
-	return err
+	sql := `CREATE TABLE IF NOT EXISTS connections (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		mode TEXT NOT NULL,
+		addresses_json TEXT NOT NULL,
+		sentinel_master TEXT NOT NULL DEFAULT '',
+		sentinel_password_cipher TEXT NOT NULL DEFAULT '',
+		username TEXT NOT NULL DEFAULT '',
+		password_cipher TEXT NOT NULL DEFAULT '',
+		tls INTEGER NOT NULL DEFAULT 0,
+		db INTEGER NOT NULL DEFAULT 0,
+		tls_cert_file TEXT NOT NULL DEFAULT '',
+		tls_key_file TEXT NOT NULL DEFAULT '',
+		tls_ca_cert_file TEXT NOT NULL DEFAULT '',
+		tls_skip_verify INTEGER NOT NULL DEFAULT 0,
+		tls_server_name TEXT NOT NULL DEFAULT '',
+		timeout_seconds INTEGER NOT NULL DEFAULT 3,
+		tags_json TEXT NOT NULL DEFAULT '[]',
+		created_at TEXT NOT NULL,
+		updated_at TEXT NOT NULL
+	)`
+	if _, err := s.db.Exec(sql); err != nil {
+		return err
+	}
+	sql2 := `CREATE TABLE IF NOT EXISTS reports (
+		id TEXT PRIMARY KEY,
+		connection_id TEXT NOT NULL,
+		connection_name TEXT NOT NULL,
+		mode TEXT NOT NULL,
+		score INTEGER NOT NULL,
+		severity TEXT NOT NULL,
+		finding_count INTEGER NOT NULL,
+		generated_at TEXT NOT NULL,
+		report_json TEXT NOT NULL
+	)`
+	if _, err := s.db.Exec(sql2); err != nil {
+		return err
+	}
+	// Migration: add columns that may not exist in older databases
+	migrations := []string{
+		`ALTER TABLE connections ADD COLUMN sentinel_password_cipher TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE connections ADD COLUMN db INTEGER NOT NULL DEFAULT 0`,
+		`ALTER TABLE connections ADD COLUMN tls_cert_file TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE connections ADD COLUMN tls_key_file TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE connections ADD COLUMN tls_ca_cert_file TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE connections ADD COLUMN tls_skip_verify INTEGER NOT NULL DEFAULT 0`,
+		`ALTER TABLE connections ADD COLUMN tls_server_name TEXT NOT NULL DEFAULT ''`,
+	}
+	for _, m := range migrations {
+		s.db.Exec(m) // ignore "duplicate column" errors
+	}
+	return nil
 }
 
 func (s *Store) SaveConnection(profile model.ConnectionProfile) (model.ConnectionProfile, error) {
@@ -110,21 +135,36 @@ func (s *Store) SaveConnection(profile model.ConnectionProfile) (model.Connectio
 		existing, _ := s.passwordCipher(profile.ID)
 		passwordCipher = existing
 	}
+	sentinelPasswordCipher, err := s.encrypt(profile.SentinelPassword)
+	if err != nil {
+		return model.ConnectionProfile{}, err
+	}
+	if profile.SentinelPassword == "" && profile.ID != "" {
+		existing, _ := s.sentinelPasswordCipher(profile.ID)
+		sentinelPasswordCipher = existing
+	}
 	_, err = s.db.Exec(`
-INSERT INTO connections (id, name, mode, addresses_json, sentinel_master, username, password_cipher, tls, timeout_seconds, tags_json, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO connections (id, name, mode, addresses_json, sentinel_master, sentinel_password_cipher, username, password_cipher, tls, db, tls_cert_file, tls_key_file, tls_ca_cert_file, tls_skip_verify, tls_server_name, timeout_seconds, tags_json, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
 	name=excluded.name,
 	mode=excluded.mode,
 	addresses_json=excluded.addresses_json,
 	sentinel_master=excluded.sentinel_master,
+	sentinel_password_cipher=excluded.sentinel_password_cipher,
 	username=excluded.username,
 	password_cipher=excluded.password_cipher,
 	tls=excluded.tls,
+	db=excluded.db,
+	tls_cert_file=excluded.tls_cert_file,
+	tls_key_file=excluded.tls_key_file,
+	tls_ca_cert_file=excluded.tls_ca_cert_file,
+	tls_skip_verify=excluded.tls_skip_verify,
+	tls_server_name=excluded.tls_server_name,
 	timeout_seconds=excluded.timeout_seconds,
 	tags_json=excluded.tags_json,
 	updated_at=excluded.updated_at`,
-		profile.ID, profile.Name, profile.Mode, string(addresses), profile.SentinelMaster, profile.Username, passwordCipher, boolInt(profile.TLS), profile.TimeoutSeconds, string(tags), profile.CreatedAt.Format(time.RFC3339Nano), profile.UpdatedAt.Format(time.RFC3339Nano))
+		profile.ID, profile.Name, profile.Mode, string(addresses), profile.SentinelMaster, sentinelPasswordCipher, profile.Username, passwordCipher, boolInt(profile.TLS), profile.DB, profile.TLSCertFile, profile.TLSKeyFile, profile.TLSCACertFile, boolInt(profile.TLSSkipVerify), profile.TLSServerName, profile.TimeoutSeconds, string(tags), profile.CreatedAt.Format(time.RFC3339Nano), profile.UpdatedAt.Format(time.RFC3339Nano))
 	if err != nil {
 		return model.ConnectionProfile{}, err
 	}
@@ -133,7 +173,7 @@ ON CONFLICT(id) DO UPDATE SET
 }
 
 func (s *Store) ListConnections() ([]model.ConnectionProfile, error) {
-	rows, err := s.db.Query(`SELECT id, name, mode, addresses_json, sentinel_master, username, tls, timeout_seconds, tags_json, created_at, updated_at FROM connections ORDER BY updated_at DESC`)
+	rows, err := s.db.Query(`SELECT id, name, mode, addresses_json, sentinel_master, username, tls, db, tls_cert_file, tls_key_file, tls_ca_cert_file, tls_skip_verify, tls_server_name, timeout_seconds, tags_json, created_at, updated_at FROM connections ORDER BY updated_at DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +200,7 @@ func (s *Store) DeleteReportsByConnection(connectionID string) error {
 }
 
 func (s *Store) GetConnection(id string) (model.ConnectionProfile, error) {
-	row := s.db.QueryRow(`SELECT id, name, mode, addresses_json, sentinel_master, username, tls, timeout_seconds, tags_json, created_at, updated_at FROM connections WHERE id = ?`, id)
+	row := s.db.QueryRow(`SELECT id, name, mode, addresses_json, sentinel_master, username, tls, db, tls_cert_file, tls_key_file, tls_ca_cert_file, tls_skip_verify, tls_server_name, timeout_seconds, tags_json, created_at, updated_at FROM connections WHERE id = ?`, id)
 	profile, err := scanPublicProfile(row)
 	if err != nil {
 		return model.ConnectionProfile{}, err
@@ -174,6 +214,10 @@ func (s *Store) GetConnection(id string) (model.ConnectionProfile, error) {
 		return model.ConnectionProfile{}, err
 	}
 	profile.Password = password
+	sentinelCipher, _ := s.sentinelPasswordCipher(id)
+	if sentinelCipher != "" {
+		profile.SentinelPassword, _ = s.decrypt(sentinelCipher)
+	}
 	return profile, nil
 }
 
@@ -242,13 +286,14 @@ type rowScanner interface {
 func scanPublicProfile(row rowScanner) (model.ConnectionProfile, error) {
 	var profile model.ConnectionProfile
 	var addressesJSON, tagsJSON, created, updated string
-	var tlsInt int
-	if err := row.Scan(&profile.ID, &profile.Name, &profile.Mode, &addressesJSON, &profile.SentinelMaster, &profile.Username, &tlsInt, &profile.TimeoutSeconds, &tagsJSON, &created, &updated); err != nil {
+	var tlsInt, tlsSkipVerifyInt int
+	if err := row.Scan(&profile.ID, &profile.Name, &profile.Mode, &addressesJSON, &profile.SentinelMaster, &profile.Username, &tlsInt, &profile.DB, &profile.TLSCertFile, &profile.TLSKeyFile, &profile.TLSCACertFile, &tlsSkipVerifyInt, &profile.TLSServerName, &profile.TimeoutSeconds, &tagsJSON, &created, &updated); err != nil {
 		return model.ConnectionProfile{}, err
 	}
 	_ = json.Unmarshal([]byte(addressesJSON), &profile.Addresses)
 	_ = json.Unmarshal([]byte(tagsJSON), &profile.Tags)
 	profile.TLS = tlsInt == 1
+	profile.TLSSkipVerify = tlsSkipVerifyInt == 1
 	profile.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
 	profile.UpdatedAt, _ = time.Parse(time.RFC3339Nano, updated)
 	return profile, nil
@@ -257,6 +302,12 @@ func scanPublicProfile(row rowScanner) (model.ConnectionProfile, error) {
 func (s *Store) passwordCipher(id string) (string, error) {
 	var value string
 	err := s.db.QueryRow(`SELECT password_cipher FROM connections WHERE id = ?`, id).Scan(&value)
+	return value, err
+}
+
+func (s *Store) sentinelPasswordCipher(id string) (string, error) {
+	var value string
+	err := s.db.QueryRow(`SELECT sentinel_password_cipher FROM connections WHERE id = ?`, id).Scan(&value)
 	return value, err
 }
 
