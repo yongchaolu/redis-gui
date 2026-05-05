@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {Search, Filter, Eye, Trash2, AlertCircle} from 'lucide-react';
 import {Card, Badge, cn} from '../lib/utils';
-import {runAnalysis} from '../lib/api';
+import {analyze} from '../lib/api';
+import {useToast} from '../components/Toast';
 import type {ConnectionProfile, AnalysisReport} from '../types';
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function MemoryAnalysisPage({connection}: Props) {
+  const {showToast} = useToast();
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ export function MemoryAnalysisPage({connection}: Props) {
     setLoading(true);
     setError('');
     try {
-      const result = await runAnalysis(connection.id);
+      const result = await analyze(connection.id);
       setReport(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : '分析失败');
@@ -216,8 +218,8 @@ export function MemoryAnalysisPage({connection}: Props) {
                   <td className="p-4 text-right font-mono" style={{color: 'var(--color-text-secondary)'}}>{key.ttl > 0 ? formatTTL(key.ttl) : 'Persistent'}</td>
                   <td className="p-4">
                     <div className="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1 hover:text-white" style={{color: 'var(--color-text-secondary)'}}><Eye className="w-3.5 h-3.5" /></button>
-                      <button className="p-1 hover:text-red-500" style={{color: 'var(--color-text-secondary)'}}><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => { navigator.clipboard.writeText(key.name); showToast(`Key name copied: ${key.name}`, 'info'); }} className="p-1 hover:text-white" style={{color: 'var(--color-text-secondary)'}}><Eye className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => showToast('Read-only mode, deletion is not supported', 'info')} className="p-1 hover:text-red-500" style={{color: 'var(--color-text-secondary)'}}><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </td>
                 </tr>

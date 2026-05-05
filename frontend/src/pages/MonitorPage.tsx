@@ -86,13 +86,13 @@ export function MonitorPage({connection}: Props) {
           <div className="px-4 py-2 flex items-center justify-between" style={{background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)'}}>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full animate-pulse" style={{background: 'var(--color-redis-red)'}} />
-              <span className="font-mono text-[10px] uppercase tracking-widest font-bold">Live Monitor Stream</span>
+              <span className="font-mono text-[10px] uppercase tracking-widest font-bold">Slow Query Log</span>
             </div>
             <div className="flex gap-2">
               <button onClick={() => setRunning(!running)} className="p-1 hover:text-white transition-colors" style={{color: 'var(--color-text-secondary)'}}>
                 {running ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
               </button>
-              <button className="p-1 hover:text-white transition-colors" style={{color: 'var(--color-text-secondary)'}}>
+              <button onClick={() => setSlowLog([])} className="p-1 hover:text-white transition-colors" style={{color: 'var(--color-text-secondary)'}}>
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>

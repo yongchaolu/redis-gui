@@ -1,10 +1,11 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {AreaChart, Area, ResponsiveContainer, CartesianGrid, Tooltip, PieChart, Pie, Cell} from 'recharts';
-import {Users, Database, Zap} from 'lucide-react';
+import {Users, Database, Zap, Save} from 'lucide-react';
 import {Card, Badge} from '../lib/utils';
-import {runAnalysis} from '../lib/api';
+import {analyze, runAnalysis, getRealtimeOPS} from '../lib/api';
 import {ClusterTopology} from '../components/ClusterTopology';
 import {RiskQueue} from '../components/RiskQueue';
+import {useToast} from '../components/Toast';
 import type {ConnectionProfile, AnalysisReport} from '../types';
 
 interface Props {
@@ -14,18 +15,22 @@ interface Props {
   onSelectConnection: (id: string) => void;
   onDelete: (id: string) => void;
   onReportLoaded?: (report: AnalysisReport) => void;
+  refreshKey?: number;
 }
 
-export function ConnectionDetailPage({connection, onReportLoaded}: Props) {
+export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: Props) {
+  const {showToast} = useToast();
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [qpsHistory, setQpsHistory] = useState<number[]>([]);
 
   const loadReport = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const result = await runAnalysis(connection.id);
+      const result = await analyze(connection.id);
       setReport(result);
       onReportLoaded?.(result);
     } catch (err) {
@@ -35,9 +40,42 @@ export function ConnectionDetailPage({connection, onReportLoaded}: Props) {
     }
   }, [connection.id, onReportLoaded]);
 
+  const handleSaveReport = useCallback(async () => {
+    setSaving(true);
+    try {
+      await runAnalysis(connection.id);
+      showToast('Report saved to history', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }, [connection.id, showToast]);
+
   useEffect(() => {
     loadReport();
-  }, [loadReport]);
+  }, [loadReport, refreshKey]);
+
+  // QPS polling — collect real data every 2 seconds
+  useEffect(() => {
+    let active = true;
+    const poll = async () => {
+      try {
+        const ops = await getRealtimeOPS(connection.id);
+        if (active) {
+          setQpsHistory((prev) => {
+            const next = [...prev, ops];
+            return next.length > 20 ? next.slice(next.length - 20) : next;
+          });
+        }
+      } catch {
+        // ignore polling errors
+      }
+    };
+    poll();
+    const id = setInterval(poll, 2000);
+    return () => { active = false; clearInterval(id); };
+  }, [connection.id]);
 
   if (loading) {
     return (
@@ -80,11 +118,9 @@ export function ConnectionDetailPage({connection, onReportLoaded}: Props) {
   const usedMemoryPeak = info['used_memory_peak_human'] ?? '-';
   const memFragRatio = memStats['mem_fragmentation_ratio'] ?? info['mem_fragmentation_ratio'] ?? '-';
 
-  const currentQPS = parseInt(report.metrics?.['instantaneous_ops_per_sec'] ?? info['instantaneous_ops_per_sec'] ?? '0', 10);
-  const qpsData = Array.from({length: 20}, (_, i) => ({
-    time: i,
-    qps: Math.max(0, currentQPS + (Math.random() - 0.5) * currentQPS * 0.3),
-  }));
+  const qpsData = qpsHistory.length > 0
+    ? qpsHistory.map((qps, i) => ({time: i, qps}))
+    : [{time: 0, qps: parseInt(report.metrics?.['instantaneous_ops_per_sec'] ?? info['instantaneous_ops_per_sec'] ?? '0', 10)}];
 
   const usedMemory = parseInt(info['used_memory'] ?? '0', 10);
   const maxMemory = parseInt(info['maxmemory'] ?? '0', 10);
@@ -95,6 +131,12 @@ export function ConnectionDetailPage({connection, onReportLoaded}: Props) {
   return (
     <div className="space-y-6">
       {/* Top Section */}
+      <div className="flex justify-end">
+        <button onClick={handleSaveReport} disabled={saving} className="flex items-center gap-2 rounded-md px-3 py-1.5 text-xs text-white transition hover:brightness-110 disabled:opacity-50" style={{background: 'var(--color-redis-red)'}}>
+          <Save className="w-3.5 h-3.5" />
+          {saving ? 'Saving...' : 'Save Report'}
+        </button>
+      </div>
       <div className="grid grid-cols-12 gap-4">
         <Card className="col-span-12 lg:col-span-4" style={{borderLeft: '4px solid #10b981'}}>
           <div className="flex justify-between items-start mb-4">

@@ -221,6 +221,11 @@ func Analyze(snapshot model.SampleSnapshot) model.AnalysisReport {
 	if totalCommands > 0 {
 		metrics["total_commands"] = fmt.Sprintf("%d", totalCommands)
 	}
+	if len(snapshot.Nodes) > 0 {
+		if policy := snapshot.Nodes[0].Info["maxmemory_policy"]; policy != "" {
+			metrics["maxmemory_policy"] = policy
+		}
+	}
 
 	for key, value := range breakdown {
 		breakdown[key] = clamp(value, 0, 100)

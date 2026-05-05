@@ -29,6 +29,7 @@ export default function App() {
   const [selectedConnectionId, setSelectedConnectionId] = useState('');
   const [loadError, setLoadError] = useState('');
   const [currentReport, setCurrentReport] = useState<AnalysisReport | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     listConnections()
@@ -172,7 +173,7 @@ export default function App() {
             {selectedConnection && (
               <>
                 <button
-                  onClick={() => { if (page === 'detail') setCurrentReport(null); }}
+                  onClick={() => { if (page === 'detail') { setCurrentReport(null); setRefreshKey((k) => k + 1); } }}
                   className="p-2 transition-colors active:scale-90"
                   style={{color: 'var(--color-text-secondary)'}}
                   onMouseEnter={(e) => (e.currentTarget.style.color = 'white')}
@@ -233,6 +234,7 @@ export default function App() {
                   onSelectConnection={(id) => setSelectedConnectionId(id)}
                   onDelete={handleDelete}
                   onReportLoaded={setCurrentReport}
+                  refreshKey={refreshKey}
                 />
               )}
               {page === 'monitor' && selectedConnection && (

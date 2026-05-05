@@ -63,7 +63,8 @@ func (a *App) TestConnection(profile model.ConnectionProfile) (model.ConnectionT
 	return a.sampler.TestConnection(a.context(), profile)
 }
 
-func (a *App) RunAnalysis(connectionID string) (model.AnalysisReport, error) {
+// Analyze runs analysis without persisting. Use for page loads.
+func (a *App) Analyze(connectionID string) (model.AnalysisReport, error) {
 	if err := a.ready(); err != nil {
 		return model.AnalysisReport{}, err
 	}
@@ -75,11 +76,19 @@ func (a *App) RunAnalysis(connectionID string) (model.AnalysisReport, error) {
 	if err != nil {
 		return model.AnalysisReport{}, err
 	}
-	result := analyzer.Analyze(snapshot)
-	if err := a.store.SaveReport(result); err != nil {
+	return analyzer.Analyze(snapshot), nil
+}
+
+// RunAnalysis runs analysis and persists the report. Use for explicit save.
+func (a *App) RunAnalysis(connectionID string) (model.AnalysisReport, error) {
+	report, err := a.Analyze(connectionID)
+	if err != nil {
 		return model.AnalysisReport{}, err
 	}
-	return result, nil
+	if err := a.store.SaveReport(report); err != nil {
+		return model.AnalysisReport{}, err
+	}
+	return report, nil
 }
 
 func (a *App) ListReports() ([]model.ReportSummary, error) {

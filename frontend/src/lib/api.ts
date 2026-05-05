@@ -44,6 +44,13 @@ export async function testConnection(profile: ConnectionProfile): Promise<{ok: b
   return {ok: true, message: '浏览器预览模式：连接测试使用 mock 结果。', mode: profile.mode};
 }
 
+export async function analyze(connectionId: string): Promise<AnalysisReport> {
+  if (app()?.Analyze) {
+    return app()!.Analyze(connectionId) as Promise<AnalysisReport>;
+  }
+  throw new Error(`当前不在 Wails 桌面环境，无法对 ${connectionId} 运行真实 Redis 分析。`);
+}
+
 export async function runAnalysis(connectionId: string): Promise<AnalysisReport> {
   if (app()?.RunAnalysis) {
     return app()!.RunAnalysis(connectionId) as Promise<AnalysisReport>;

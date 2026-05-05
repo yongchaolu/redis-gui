@@ -316,9 +316,16 @@ export namespace model {
 	    mode: string;
 	    addresses: string[];
 	    sentinelMaster?: string;
+	    sentinelPassword?: string;
 	    username?: string;
 	    password?: string;
+	    db: number;
 	    tls: boolean;
+	    tlsCertFile?: string;
+	    tlsKeyFile?: string;
+	    tlsCACertFile?: string;
+	    tlsSkipVerify?: boolean;
+	    tlsServerName?: string;
 	    timeoutSeconds: number;
 	    tags?: string[];
 	    // Go type: time
@@ -337,9 +344,16 @@ export namespace model {
 	        this.mode = source["mode"];
 	        this.addresses = source["addresses"];
 	        this.sentinelMaster = source["sentinelMaster"];
+	        this.sentinelPassword = source["sentinelPassword"];
 	        this.username = source["username"];
 	        this.password = source["password"];
+	        this.db = source["db"];
 	        this.tls = source["tls"];
+	        this.tlsCertFile = source["tlsCertFile"];
+	        this.tlsKeyFile = source["tlsKeyFile"];
+	        this.tlsCACertFile = source["tlsCACertFile"];
+	        this.tlsSkipVerify = source["tlsSkipVerify"];
+	        this.tlsServerName = source["tlsServerName"];
 	        this.timeoutSeconds = source["timeoutSeconds"];
 	        this.tags = source["tags"];
 	        this.createdAt = this.convertValues(source["createdAt"], null);

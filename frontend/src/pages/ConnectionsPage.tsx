@@ -40,6 +40,10 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
   }
 
   function handleSelectConn(conn: ConnectionProfile) {
+    onSelect(conn.id);
+  }
+
+  function handleEditConn(conn: ConnectionProfile) {
     setSelectedId(conn.id);
     setEditing({...conn});
     setTestResult('');
@@ -95,7 +99,7 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
                   </button>
                   {menuOpenId === conn.id && (
                     <div className="absolute right-0 top-full z-10 mt-1 w-28 rounded-md py-1 shadow-lg" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
-                      <button onClick={(e) => { e.stopPropagation(); handleSelectConn(conn); setMenuOpenId(''); }} className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-white hover:bg-white/5">
+                      <button onClick={(e) => { e.stopPropagation(); handleEditConn(conn); setMenuOpenId(''); }} className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-white hover:bg-white/5">
                         <Edit3 className="w-3.5 h-3.5" /> Edit
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); onDelete(conn.id); if (selectedId === conn.id) { setSelectedId(''); setEditing(null); } setMenuOpenId(''); }} className="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-white/5" style={{color: 'var(--color-redis-red)'}}>
@@ -216,6 +220,7 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
   const hostPort = addresses.split(',')[0]?.split(':') ?? ['127.0.0.1', '6379'];
   const host = hostPort[0] || '127.0.0.1';
   const port = hostPort[1] || '6379';
+  const isSingleMode = mode === 'standalone';
 
   const inputStyle = {
     background: 'rgba(0,0,0,0.2)',
@@ -252,16 +257,23 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Production Cache" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
+          {isSingleMode ? (
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                Host
+                <input value={host} onChange={(e) => setAddresses(`${e.target.value}:${port}`)} placeholder="127.0.0.1" className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+              </label>
+              <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
+                Port
+                <input value={port} onChange={(e) => setAddresses(`${host}:${e.target.value}`)} placeholder="6379" className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+              </label>
+            </div>
+          ) : (
             <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-              Host
-              <input value={host} onChange={(e) => setAddresses(`${e.target.value}:${port}`)} placeholder="127.0.0.1" className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+              Addresses <span className="opacity-50">(comma separated, host:port)</span>
+              <textarea value={addresses} onChange={(e) => setAddresses(e.target.value)} placeholder="127.0.0.1:6379, 127.0.0.1:6380, 127.0.0.1:6381" rows={3} className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none" style={inputStyle} />
             </label>
-            <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-              Port
-              <input value={port} onChange={(e) => setAddresses(`${host}:${e.target.value}`)} placeholder="6379" className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
-            </label>
-          </div>
+          )}
 
           {mode === 'sentinel' && (
             <>

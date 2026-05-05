@@ -441,25 +441,50 @@ func int64FromAny(value any) int64 {
 	}
 }
 
+// resolveAddr returns the correct target address for the profile mode.
+// For sentinel, it discovers the current master. For standalone/cluster, it uses the first address.
+func (s *Sampler) resolveAddr(ctx context.Context, profile model.ConnectionProfile) (string, error) {
+	if profile.Mode == model.ConnectionModeSentinel {
+		return s.discoverSentinelMaster(ctx, profile)
+	}
+	return firstAddress(profile), nil
+}
+
 // ReadConfig runs CONFIG GET * and returns the key-value pairs.
 func (s *Sampler) ReadConfig(ctx context.Context, profile model.ConnectionProfile) (map[string]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
 	defer cancel()
-	addr := firstAddress(profile)
-	client := redis.NewClient(optionsFor(profile, addr))
-	defer client.Close()
-	raw, err := client.ConfigGet(ctx, "*").Result()
+	if profile.Mode == model.ConnectionModeCluster {
+		client := redis.NewClusterClient(clusterOptions(profile))
+		defer client.Close()
+		return client.ConfigGet(ctx, "*").Result()
+	}
+	addr, err := s.resolveAddr(ctx, profile)
 	if err != nil {
 		return nil, err
 	}
-	return raw, nil
+	client := redis.NewClient(optionsFor(profile, addr))
+	defer client.Close()
+	return client.ConfigGet(ctx, "*").Result()
 }
 
 // ReadInfoSections runs INFO and returns the full parsed map.
 func (s *Sampler) ReadInfoSections(ctx context.Context, profile model.ConnectionProfile) (map[string]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
 	defer cancel()
-	addr := firstAddress(profile)
+	if profile.Mode == model.ConnectionModeCluster {
+		client := redis.NewClusterClient(clusterOptions(profile))
+		defer client.Close()
+		info, err := client.Info(ctx).Result()
+		if err != nil {
+			return nil, err
+		}
+		return parseInfo(info), nil
+	}
+	addr, err := s.resolveAddr(ctx, profile)
+	if err != nil {
+		return nil, err
+	}
 	client := redis.NewClient(optionsFor(profile, addr))
 	defer client.Close()
 	info, err := client.Info(ctx).Result()
@@ -473,7 +498,20 @@ func (s *Sampler) ReadInfoSections(ctx context.Context, profile model.Connection
 func (s *Sampler) ReadSlowLog(ctx context.Context, profile model.ConnectionProfile) ([]model.SlowLogEntry, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
 	defer cancel()
-	addr := firstAddress(profile)
+	if profile.Mode == model.ConnectionModeCluster {
+		var all []model.SlowLogEntry
+		client := redis.NewClusterClient(clusterOptions(profile))
+		defer client.Close()
+		_ = client.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
+			all = append(all, readSlowlog(ctx, shard)...)
+			return nil
+		})
+		return all, nil
+	}
+	addr, err := s.resolveAddr(ctx, profile)
+	if err != nil {
+		return nil, err
+	}
 	client := redis.NewClient(optionsFor(profile, addr))
 	defer client.Close()
 	return readSlowlog(ctx, client), nil
@@ -483,13 +521,24 @@ func (s *Sampler) ReadSlowLog(ctx context.Context, profile model.ConnectionProfi
 func (s *Sampler) ReadOPS(ctx context.Context, profile model.ConnectionProfile) (int, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout(profile))
 	defer cancel()
-	addr := firstAddress(profile)
+	if profile.Mode == model.ConnectionModeCluster {
+		client := redis.NewClusterClient(clusterOptions(profile))
+		defer client.Close()
+		info, err := client.Info(ctx, "stats").Result()
+		if err != nil {
+			return 0, err
+		}
+		return intValue(parseInfo(info)["instantaneous_ops_per_sec"]), nil
+	}
+	addr, err := s.resolveAddr(ctx, profile)
+	if err != nil {
+		return 0, err
+	}
 	client := redis.NewClient(optionsFor(profile, addr))
 	defer client.Close()
 	info, err := client.Info(ctx, "stats").Result()
 	if err != nil {
 		return 0, err
 	}
-	parsed := parseInfo(info)
-	return intValue(parsed["instantaneous_ops_per_sec"]), nil
+	return intValue(parseInfo(info)["instantaneous_ops_per_sec"]), nil
 }
