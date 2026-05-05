@@ -44,9 +44,9 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
     setSaving(true);
     try {
       await runAnalysis(connection.id);
-      showToast('Report saved to history', 'success');
+      showToast('报告已保存到历史记录', 'success');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
+      showToast(err instanceof Error ? err.message : '保存失败', 'error');
     } finally {
       setSaving(false);
     }
@@ -81,7 +81,7 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
     return (
       <div className="flex h-[400px] items-center justify-center">
         <div className="animate-pulse font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>
-          Analyzing {connection.name}...
+          正在分析 {connection.name}...
         </div>
       </div>
     );
@@ -93,7 +93,7 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
         <div className="rounded-lg px-6 py-4 text-center" style={{border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.1)'}}>
           <p className="text-sm" style={{color: 'var(--color-redis-red)'}}>{error}</p>
           <button onClick={loadReport} className="mt-3 rounded-md px-3 py-1.5 text-xs" style={{border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)'}}>
-            Retry
+            重试
           </button>
         </div>
       </div>
@@ -134,24 +134,24 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
       <div className="flex justify-end">
         <button onClick={handleSaveReport} disabled={saving} className="flex items-center gap-2 rounded-md px-3 py-1.5 text-xs text-white transition hover:brightness-110 disabled:opacity-50" style={{background: 'var(--color-redis-red)'}}>
           <Save className="w-3.5 h-3.5" />
-          {saving ? 'Saving...' : 'Save Report'}
+          {saving ? '保存中...' : '保存报告'}
         </button>
       </div>
       <div className="grid grid-cols-12 gap-4">
         <Card className="col-span-12 lg:col-span-4" style={{borderLeft: '4px solid #10b981'}}>
           <div className="flex justify-between items-start mb-4">
-            <h3 className="text-sm font-semibold text-white">Instance Node</h3>
+            <h3 className="text-sm font-semibold text-white">实例节点</h3>
             <div className="flex items-center gap-2 text-emerald-400">
               <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              <span className="text-[10px] font-mono tracking-widest font-bold">HEALTHY</span>
+              <span className="text-[10px] font-mono tracking-widest font-bold">健康</span>
             </div>
           </div>
           <div className="space-y-3 font-mono text-sm">
             {[
-              {label: 'OS', value: info['os'] ?? '-'},
-              {label: 'Process ID', value: info['process_id'] ?? '-'},
-              {label: 'Role', value: info['role'] ?? '-'},
-              {label: 'Arch', value: info['arch'] ?? info['gcc_version'] ?? '-'},
+              {label: '系统', value: info['os'] ?? '-'},
+              {label: '进程 ID', value: info['process_id'] ?? '-'},
+              {label: '角色', value: info['role'] ?? '-'},
+              {label: '架构', value: info['arch'] ?? info['gcc_version'] ?? '-'},
             ].map((item) => (
               <div key={item.label} className="flex justify-between pb-1" style={{borderBottom: '1px solid rgba(51,65,85,0.5)'}}>
                 <span style={{color: 'var(--color-text-secondary)'}}>{item.label}</span>
@@ -164,32 +164,32 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
         <div className="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="flex flex-col justify-between">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Clients</span>
+              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>客户端</span>
               <Users className="w-4 h-4 text-blue-400" />
             </div>
             <div className="mt-4">
               <div className="text-3xl font-mono font-bold">{connectedClients}</div>
-              <div className="text-[10px] font-mono text-emerald-400">Connected</div>
+              <div className="text-[10px] font-mono text-emerald-400">已连接</div>
             </div>
           </Card>
           <Card className="flex flex-col justify-between">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Hit Rate</span>
+              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>命中率</span>
               <Database className="w-4 h-4" style={{color: 'var(--color-redis-red)'}} />
             </div>
             <div className="mt-4">
               <div className="text-3xl font-mono font-bold">{hitRate}</div>
-              <div className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>Keyspace Efficiency</div>
+              <div className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>键空间效率</div>
             </div>
           </Card>
           <Card className="flex flex-col justify-between">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Total Commands</span>
+              <span className="text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>总命令数</span>
               <Zap className="w-4 h-4 text-yellow-400" />
             </div>
             <div className="mt-4">
               <div className="text-3xl font-mono font-bold">{formatNumber(totalCommands)}</div>
-              <div className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>Since Uptime</div>
+              <div className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>自启动以来</div>
             </div>
           </Card>
         </div>
@@ -199,10 +199,10 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
       <div className="grid grid-cols-12 gap-4">
         <Card className="col-span-12 lg:col-span-8 h-[350px] flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-semibold text-white">Operations Per Second (QPS)</h3>
+            <h3 className="text-sm font-semibold text-white">每秒操作数 (QPS)</h3>
             <div className="flex gap-2">
-              <Badge className="border" style={{background: 'rgba(220,38,38,0.2)', color: 'var(--color-redis-red)', borderColor: 'rgba(220,38,38,0.4)'}}>Live</Badge>
-              <Badge style={{background: 'var(--color-border)', color: 'var(--color-text-secondary)'}}>Historical</Badge>
+              <Badge className="border" style={{background: 'rgba(220,38,38,0.2)', color: 'var(--color-redis-red)', borderColor: 'rgba(220,38,38,0.4)'}}>实时</Badge>
+              <Badge style={{background: 'var(--color-border)', color: 'var(--color-text-secondary)'}}>历史</Badge>
             </div>
           </div>
           <div className="flex-grow w-full">
@@ -223,7 +223,7 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
         </Card>
 
         <Card className="col-span-12 lg:col-span-4 flex flex-col items-center">
-          <h3 className="text-sm font-semibold text-white mb-8">Memory Usage</h3>
+          <h3 className="text-sm font-semibold text-white mb-8">内存使用</h3>
           <div className="relative w-48 h-48 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -246,11 +246,11 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
           </div>
           <div className="w-full space-y-3 pt-4" style={{borderTop: '1px solid rgba(51,65,85,0.5)'}}>
             <div className="flex justify-between items-center text-sm">
-              <span style={{color: 'var(--color-text-secondary)'}}>Fragmentation Ratio</span>
+              <span style={{color: 'var(--color-text-secondary)'}}>内存碎片率</span>
               <span className="font-mono text-white">{memFragRatio}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span style={{color: 'var(--color-text-secondary)'}}>Peak Memory</span>
+              <span style={{color: 'var(--color-text-secondary)'}}>峰值内存</span>
               <span className="font-mono text-white">{usedMemoryPeak}</span>
             </div>
           </div>
@@ -261,17 +261,17 @@ export function ConnectionDetailPage({connection, onReportLoaded, refreshKey}: P
       {commandStats.length > 0 && (
         <Card className="overflow-hidden p-0">
           <div className="px-6 py-3 flex justify-between items-center" style={{borderBottom: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.5)'}}>
-            <h3 className="text-sm font-mono font-bold uppercase tracking-widest">Frequent Commands</h3>
-            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>Since Uptime</span>
+            <h3 className="text-sm font-mono font-bold uppercase tracking-widest">高频命令</h3>
+            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>自启动以来</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left font-mono text-sm">
               <thead>
                 <tr style={{background: 'rgba(15,23,42,0.5)', color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)'}}>
-                  <th className="px-6 py-4 font-medium uppercase tracking-tighter">Command</th>
-                  <th className="px-6 py-4 font-medium uppercase tracking-tighter">Calls</th>
-                  <th className="px-6 py-4 font-medium uppercase tracking-tighter text-right">Total Time (us)</th>
-                  <th className="px-6 py-4 font-medium uppercase tracking-tighter text-right">Usage %</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter">命令</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter">调用次数</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter text-right">总耗时 (us)</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-tighter text-right">使用占比</th>
                 </tr>
               </thead>
               <tbody>

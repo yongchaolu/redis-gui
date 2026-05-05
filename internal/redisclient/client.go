@@ -58,7 +58,7 @@ func (s *Sampler) Sample(ctx context.Context, profile model.ConnectionProfile) (
 		ConnectionID: profile.ID,
 		Connection:   profile.Name,
 		Mode:         profile.Mode,
-		SampledAt:    time.Now(),
+		SampledAt:    time.Now().UnixNano(),
 	}
 	switch profile.Mode {
 	case model.ConnectionModeCluster:

@@ -19,6 +19,8 @@ export interface ConnectionProfile {
   db: number;
   timeoutSeconds: number;
   tags?: string[];
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface RiskFinding {
@@ -75,7 +77,7 @@ export interface AnalysisReport {
   mode: ConnectionMode;
   score: number;
   severity: Severity;
-  generatedAt: string;
+  generatedAt: number;
   summary: string;
   breakdown: Record<string, number>;
   metrics: Record<string, string>;
@@ -93,6 +95,6 @@ export interface ReportSummary {
   mode: ConnectionMode;
   score: number;
   severity: Severity;
-  generatedAt: string;
+  generatedAt: number;
   findingCount: number;
 }

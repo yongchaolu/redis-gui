@@ -49,7 +49,7 @@ export function ReportsPage() {
     return (
       <div className="flex h-[400px] items-center justify-center">
         <div className="animate-pulse font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>
-          Loading reports...
+          加载报告中...
         </div>
       </div>
     );
@@ -61,23 +61,23 @@ export function ReportsPage() {
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <FileText className="w-5 h-5" style={{color: 'var(--color-redis-red)'}} />
-            History Reports
+            历史报告
           </h2>
           <p className="text-sm mt-1" style={{color: 'var(--color-text-secondary)'}}>
-            Saved analysis snapshots from previous runs
+            保存的历史分析快照
           </p>
         </div>
         <Badge style={{background: 'var(--color-border)', color: 'var(--color-text-secondary)'}}>
-          {reports.length} reports
+          {reports.length} 份报告
         </Badge>
       </div>
 
       {reports.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-16">
           <AlertTriangle className="w-10 h-10 mb-3 opacity-20" style={{color: 'var(--color-text-secondary)'}} />
-          <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>No reports yet</p>
+          <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>暂无报告</p>
           <p className="text-xs mt-1" style={{color: 'var(--color-text-secondary)'}}>
-            Run an analysis to generate your first report
+            运行分析以生成您的第一份报告
           </p>
         </Card>
       ) : (
@@ -96,9 +96,9 @@ export function ReportsPage() {
                   </Badge>
                 </div>
                 <div className="mt-1.5 flex items-center gap-3 font-mono text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                  <span>{new Date(report.generatedAt).toLocaleString()}</span>
+                  <span>{new Date(report.generatedAt / 1_000_000).toLocaleString()}</span>
                   <span style={{color: 'var(--color-border)'}}>·</span>
-                  <span>{report.findingCount} findings</span>
+                  <span>{report.findingCount} 个发现</span>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -116,7 +116,7 @@ export function ReportsPage() {
                   style={{border: '1px solid var(--color-border)', background: 'var(--color-surface-hover)'}}
                 >
                   <Download className="w-3.5 h-3.5" />
-                  Export HTML
+                  导出 HTML
                 </button>
               </div>
             </Card>

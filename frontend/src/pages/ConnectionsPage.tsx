@@ -14,9 +14,9 @@ interface Props {
 }
 
 const MODE_OPTIONS: {value: ConnectionMode; label: string}[] = [
-  {value: 'standalone', label: 'Standalone'},
-  {value: 'sentinel', label: 'Sentinel'},
-  {value: 'cluster', label: 'Cluster'},
+  {value: 'standalone', label: '单机'},
+  {value: 'sentinel', label: '哨兵'},
+  {value: 'cluster', label: '集群'},
 ];
 
 export function ConnectionsPage({connections, loadingConnections, onSaved, onDelete, onSelect}: Props) {
@@ -32,8 +32,8 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
     setEditing({
       id: '', name: '', mode: 'standalone', addresses: ['127.0.0.1:6379'],
       sentinelMaster: '', username: '', password: '', db: 0, tls: false, timeoutSeconds: 3,
-      tags: [],
-    } as ConnectionProfile);
+      tags: [], createdAt: 0, updatedAt: 0,
+    });
     setTestResult('');
     setShowPassword(false);
     setShowAdvanced(false);
@@ -54,7 +54,7 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
   if (loadingConnections) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="animate-pulse" style={{color: 'var(--color-text-secondary)'}}>Loading connections...</div>
+        <div className="animate-pulse" style={{color: 'var(--color-text-secondary)'}}>加载连接中...</div>
       </div>
     );
   }
@@ -64,15 +64,15 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
       {/* Left Panel */}
       <aside className="flex w-[280px] shrink-0 flex-col lg:w-[300px]" style={{borderRight: '1px solid var(--color-border)', background: 'var(--color-surface)'}}>
         <div className="flex items-center justify-between px-4 py-3" style={{borderBottom: '1px solid var(--color-border)'}}>
-          <span className="text-xs font-bold uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Saved Connections</span>
-          <button onClick={handleNew} className="rounded-md p-1 text-white transition hover:brightness-110 active:scale-95" style={{background: 'var(--color-redis-red)'}} title="New Connection">
+          <span className="text-xs font-bold uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>已保存连接</span>
+          <button onClick={handleNew} className="rounded-md p-1 text-white transition hover:brightness-110 active:scale-95" style={{background: 'var(--color-redis-red)'}} title="新建连接">
             <Plus className="w-4 h-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {connections.length === 0 ? (
-            <div className="p-4 text-center text-xs" style={{color: 'var(--color-text-secondary)'}}>No connections yet</div>
+            <div className="p-4 text-center text-xs" style={{color: 'var(--color-text-secondary)'}}>暂无连接</div>
           ) : (
             connections.map((conn) => (
               <div
@@ -100,10 +100,10 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
                   {menuOpenId === conn.id && (
                     <div className="absolute right-0 top-full z-10 mt-1 w-28 rounded-md py-1 shadow-lg" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
                       <button onClick={(e) => { e.stopPropagation(); handleEditConn(conn); setMenuOpenId(''); }} className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-white hover:bg-white/5">
-                        <Edit3 className="w-3.5 h-3.5" /> Edit
+                        <Edit3 className="w-3.5 h-3.5" /> 编辑
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); onDelete(conn.id); if (selectedId === conn.id) { setSelectedId(''); setEditing(null); } setMenuOpenId(''); }} className="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-white/5" style={{color: 'var(--color-redis-red)'}}>
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                        <Trash2 className="w-3.5 h-3.5" /> 删除
                       </button>
                     </div>
                   )}
@@ -124,7 +124,7 @@ export function ConnectionsPage({connections, loadingConnections, onSaved, onDel
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
               <Database className="w-12 h-12 mx-auto mb-2 opacity-20" style={{color: 'var(--color-text-secondary)'}} />
-              <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>Select a connection or create a new one</p>
+              <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>选择一个连接或创建新连接</p>
             </div>
           </div>
         ) : (
@@ -195,9 +195,9 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
     setTesting(true);
     try {
       const result = await testConnection(draft());
-      setTestResult(`${result.ok ? 'Success' : 'Failed'}: ${result.message}`);
+      setTestResult(`${result.ok ? '成功' : '失败'}: ${result.message}`);
     } catch (err) {
-      setTestResult(err instanceof Error ? err.message : 'Test failed');
+      setTestResult(err instanceof Error ? err.message : '测试失败');
     } finally {
       setTesting(false);
     }
@@ -209,9 +209,9 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
       const saved = await saveConnection(draft());
       onSaved(saved);
       onSelect(saved.id);
-      showToast('Connection saved', 'success');
+      showToast('连接已保存', 'success');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
+      showToast(err instanceof Error ? err.message : '保存失败', 'error');
     } finally {
       setSaving(false);
     }
@@ -230,7 +230,7 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <h1 className="text-xl font-bold text-white">{isEdit ? 'Edit Connection' : 'New Connection'}</h1>
+      <h1 className="text-xl font-bold text-white">{isEdit ? '编辑连接' : '新建连接'}</h1>
 
       {/* Mode Tabs */}
       <div className="mt-4 flex gap-1 rounded-lg p-1" style={{border: '1px solid var(--color-border)', background: 'var(--color-surface)'}}>
@@ -253,24 +253,24 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
       <div className="mt-5 rounded-lg p-5" style={{border: '1px solid var(--color-border)', background: 'var(--color-surface)'}}>
         <div className="space-y-4">
           <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-            Connection Name
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Production Cache" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+            连接名称
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="例如: 生产缓存" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
           </label>
 
           {isSingleMode ? (
             <div className="grid grid-cols-2 gap-3">
               <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                Host
+                主机
                 <input value={host} onChange={(e) => setAddresses(`${e.target.value}:${port}`)} placeholder="127.0.0.1" className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
               </label>
               <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                Port
+                端口
                 <input value={port} onChange={(e) => setAddresses(`${host}:${e.target.value}`)} placeholder="6379" className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
               </label>
             </div>
           ) : (
             <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-              Addresses <span className="opacity-50">(comma separated, host:port)</span>
+              地址 <span className="opacity-50">(逗号分隔，格式: host:port)</span>
               <textarea value={addresses} onChange={(e) => setAddresses(e.target.value)} placeholder="127.0.0.1:6379, 127.0.0.1:6380, 127.0.0.1:6381" rows={3} className="mt-1.5 w-full rounded-md px-3 py-2.5 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none" style={inputStyle} />
             </label>
           )}
@@ -278,23 +278,23 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
           {mode === 'sentinel' && (
             <>
               <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                Sentinel Master Name
+                Sentinel 主节点名称
                 <input value={sentinelMaster} onChange={(e) => setSentinelMaster(e.target.value)} placeholder="mymaster" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
               </label>
               <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                Sentinel Password <span className="opacity-50">(if different from master)</span>
-                <input type="password" value={sentinelPassword} onChange={(e) => setSentinelPassword(e.target.value)} placeholder="leave empty to use same password" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+                Sentinel 密码 <span className="opacity-50">(如与主节点不同)</span>
+                <input type="password" value={sentinelPassword} onChange={(e) => setSentinelPassword(e.target.value)} placeholder="留空则使用相同密码" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
               </label>
             </>
           )}
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-              Username <span className="opacity-50">(optional)</span>
+              用户名 <span className="opacity-50">(可选)</span>
               <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="default" className="mt-1.5 w-full rounded-md px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
             </label>
             <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-              Password
+              密码
               <div className="relative mt-1.5">
                 <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-md px-3 py-2.5 pr-9 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 hover:text-white" style={{color: 'var(--color-text-secondary)'}}>
@@ -308,22 +308,22 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
           <div>
             <button onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-1 text-xs transition hover:text-white" style={{color: 'var(--color-text-secondary)'}}>
               {showAdvanced ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-              Advanced Settings
+              高级设置
             </button>
             {showAdvanced && (
               <div className="mt-3 space-y-3 rounded-md p-3" style={{border: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.5)'}}>
                 <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                  Tags <span className="opacity-50">(comma separated)</span>
-                  <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="production, cache, critical" className="mt-1.5 w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+                  标签 <span className="opacity-50">(逗号分隔)</span>
+                  <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="生产, 缓存, 关键" className="mt-1.5 w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
                 </label>
                 <div className="flex items-center gap-4">
                   <label className="flex items-center gap-2 text-xs" style={{color: 'var(--color-text-secondary)'}}>
                     <input type="checkbox" checked={tls} onChange={(e) => setTls(e.target.checked)} className="h-3.5 w-3.5 accent-blue-500" />
-                    Enable TLS
+                    启用 TLS
                   </label>
                   {mode === 'standalone' && (
                     <label className="flex items-center gap-1.5 text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                      DB
+                      数据库
                       <select value={db} onChange={(e) => setDb(Number(e.target.value))} className="w-16 rounded px-2 py-1 text-center font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle}>
                         {Array.from({length: 16}, (_, i) => (
                           <option key={i} value={i}>{i}</option>
@@ -332,36 +332,36 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
                     </label>
                   )}
                   <label className="flex items-center gap-1.5 text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                    Timeout
+                    超时
                     <input type="number" min={1} max={60} value={timeoutSeconds} onChange={(e) => setTimeoutSeconds(Number(e.target.value))} className="w-14 rounded px-2 py-1 text-center font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
-                    sec
+                    秒
                   </label>
                 </div>
                 {tls && (
                   <div className="space-y-3 rounded-md p-3" style={{border: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.3)'}}>
-                    <div className="text-[10px] font-bold uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>TLS Certificate</div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>TLS 证书</div>
                     <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                      CA Cert File <span className="opacity-50">(self-signed / custom CA)</span>
+                      CA 证书文件 <span className="opacity-50">(自签名 / 自定义 CA)</span>
                       <input value={tlsCACertFile} onChange={(e) => setTlsCACertFile(e.target.value)} placeholder="/path/to/ca.crt" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                        Client Cert File
+                        客户端证书文件
                         <input value={tlsCertFile} onChange={(e) => setTlsCertFile(e.target.value)} placeholder="/path/to/client.crt" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
                       </label>
                       <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                        Client Key File
+                        客户端密钥文件
                         <input value={tlsKeyFile} onChange={(e) => setTlsKeyFile(e.target.value)} placeholder="/path/to/client.key" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
                       </label>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <label className="block text-xs" style={{color: 'var(--color-text-secondary)'}}>
-                        Server Name <span className="opacity-50">(SNI)</span>
-                        <input value={tlsServerName} onChange={(e) => setTlsServerName(e.target.value)} placeholder="optional" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
+                        服务器名称 <span className="opacity-50">(SNI)</span>
+                        <input value={tlsServerName} onChange={(e) => setTlsServerName(e.target.value)} placeholder="可选" className="mt-1.5 w-full rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-1 focus:ring-blue-500" style={inputStyle} />
                       </label>
                       <label className="flex items-center gap-2 self-end text-xs" style={{color: 'var(--color-text-secondary)'}}>
                         <input type="checkbox" checked={tlsSkipVerify} onChange={(e) => setTlsSkipVerify(e.target.checked)} className="h-3.5 w-3.5 accent-blue-500" />
-                        Skip Certificate Verification
+                        跳过证书验证
                       </label>
                     </div>
                   </div>
@@ -382,10 +382,10 @@ function EditingForm({profile, testResult, setTestResult, showPassword, setShowP
       {/* Actions */}
       <div className="mt-5 flex gap-3">
         <button onClick={handleTest} disabled={testing} className="flex-1 rounded-md px-5 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50" style={{border: '1px solid var(--color-border)', background: 'var(--color-surface)'}}>
-          {testing ? 'Testing...' : 'Test Connection'}
+          {testing ? '测试中...' : '测试连接'}
         </button>
         <button onClick={handleSave} disabled={saving} className="flex-1 rounded-md px-5 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50" style={{background: 'var(--color-redis-red)', boxShadow: '0 0 15px rgba(220,38,38,0.3)'}}>
-          {saving ? 'Saving...' : 'Connect & Save'}
+          {saving ? '保存中...' : '连接并保存'}
         </button>
       </div>
     </div>

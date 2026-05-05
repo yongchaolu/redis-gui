@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -105,12 +106,12 @@ func (s *Store) migrate() error {
 }
 
 func (s *Store) SaveConnection(profile model.ConnectionProfile) (model.ConnectionProfile, error) {
-	now := time.Now()
+	now := time.Now().UnixNano()
 	if profile.ID == "" {
-		profile.ID = fmt.Sprintf("conn-%d", now.UnixNano())
+		profile.ID = fmt.Sprintf("conn-%d", now)
 		profile.CreatedAt = now
 	}
-	if profile.UpdatedAt.IsZero() {
+	if profile.UpdatedAt == 0 {
 		profile.UpdatedAt = now
 	}
 	if profile.TimeoutSeconds <= 0 {
@@ -164,7 +165,7 @@ ON CONFLICT(id) DO UPDATE SET
 	timeout_seconds=excluded.timeout_seconds,
 	tags_json=excluded.tags_json,
 	updated_at=excluded.updated_at`,
-		profile.ID, profile.Name, profile.Mode, string(addresses), profile.SentinelMaster, sentinelPasswordCipher, profile.Username, passwordCipher, boolInt(profile.TLS), profile.DB, profile.TLSCertFile, profile.TLSKeyFile, profile.TLSCACertFile, boolInt(profile.TLSSkipVerify), profile.TLSServerName, profile.TimeoutSeconds, string(tags), profile.CreatedAt.Format(time.RFC3339Nano), profile.UpdatedAt.Format(time.RFC3339Nano))
+		profile.ID, profile.Name, profile.Mode, string(addresses), profile.SentinelMaster, sentinelPasswordCipher, profile.Username, passwordCipher, boolInt(profile.TLS), profile.DB, profile.TLSCertFile, profile.TLSKeyFile, profile.TLSCACertFile, boolInt(profile.TLSSkipVerify), profile.TLSServerName, profile.TimeoutSeconds, string(tags), fmt.Sprintf("%d", profile.CreatedAt), fmt.Sprintf("%d", profile.UpdatedAt))
 	if err != nil {
 		return model.ConnectionProfile{}, err
 	}
@@ -225,15 +226,15 @@ func (s *Store) SaveReport(report model.AnalysisReport) error {
 	if report.ID == "" {
 		report.ID = fmt.Sprintf("report-%d", time.Now().UnixNano())
 	}
-	if report.GeneratedAt.IsZero() {
-		report.GeneratedAt = time.Now()
+	if report.GeneratedAt == 0 {
+		report.GeneratedAt = time.Now().UnixNano()
 	}
 	body, err := json.Marshal(report)
 	if err != nil {
 		return err
 	}
 	_, err = s.db.Exec(`INSERT OR REPLACE INTO reports (id, connection_id, connection_name, mode, score, severity, finding_count, generated_at, report_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		report.ID, report.ConnectionID, report.Connection, report.Mode, report.Score, report.Severity, len(report.Findings), report.GeneratedAt.Format(time.RFC3339Nano), string(body))
+		report.ID, report.ConnectionID, report.Connection, report.Mode, report.Score, report.Severity, len(report.Findings), fmt.Sprintf("%d", report.GeneratedAt), string(body))
 	return err
 }
 
@@ -250,7 +251,7 @@ func (s *Store) ListReports() ([]model.ReportSummary, error) {
 		if err := rows.Scan(&summary.ID, &summary.ConnectionID, &summary.Connection, &summary.Mode, &summary.Score, &summary.Severity, &summary.FindingCount, &generated); err != nil {
 			return nil, err
 		}
-		summary.GeneratedAt, _ = time.Parse(time.RFC3339Nano, generated)
+		summary.GeneratedAt, _ = strconv.ParseInt(generated, 10, 64)
 		summaries = append(summaries, summary)
 	}
 	return summaries, rows.Err()
@@ -294,8 +295,8 @@ func scanPublicProfile(row rowScanner) (model.ConnectionProfile, error) {
 	_ = json.Unmarshal([]byte(tagsJSON), &profile.Tags)
 	profile.TLS = tlsInt == 1
 	profile.TLSSkipVerify = tlsSkipVerifyInt == 1
-	profile.CreatedAt, _ = time.Parse(time.RFC3339Nano, created)
-	profile.UpdatedAt, _ = time.Parse(time.RFC3339Nano, updated)
+	profile.CreatedAt, _ = strconv.ParseInt(created, 10, 64)
+	profile.UpdatedAt, _ = strconv.ParseInt(updated, 10, 64)
 	return profile, nil
 }
 

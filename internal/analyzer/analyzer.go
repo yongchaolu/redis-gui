@@ -239,7 +239,7 @@ func Analyze(snapshot model.SampleSnapshot) model.AnalysisReport {
 		Mode:         snapshot.Mode,
 		Score:        score,
 		Severity:     severityFor(score, findings),
-		GeneratedAt:  time.Now(),
+		GeneratedAt:  time.Now().UnixNano(),
 		Summary:      summaryFor(score, findings),
 		Breakdown:    breakdown,
 		Metrics:      metrics,

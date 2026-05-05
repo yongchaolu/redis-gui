@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 type ConnectionMode string
 
 const (
@@ -37,8 +35,8 @@ type ConnectionProfile struct {
 	TLSServerName    string         `json:"tlsServerName,omitempty"`
 	TimeoutSeconds   int            `json:"timeoutSeconds"`
 	Tags             []string       `json:"tags,omitempty"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	CreatedAt      int64          `json:"createdAt"`
+	UpdatedAt      int64          `json:"updatedAt"`
 }
 
 type ConnectionTestResult struct {
@@ -51,7 +49,7 @@ type SampleSnapshot struct {
 	ConnectionID string          `json:"connectionId"`
 	Connection   string          `json:"connection"`
 	Mode         ConnectionMode  `json:"mode"`
-	SampledAt    time.Time       `json:"sampledAt"`
+	SampledAt    int64           `json:"sampledAt"`
 	Nodes        []NodeSample    `json:"nodes"`
 	Cluster      *ClusterSample  `json:"cluster,omitempty"`
 	Sentinel     *SentinelSample `json:"sentinel,omitempty"`
@@ -133,7 +131,7 @@ type AnalysisReport struct {
 	Mode         ConnectionMode    `json:"mode"`
 	Score        int               `json:"score"`
 	Severity     Severity          `json:"severity"`
-	GeneratedAt  time.Time         `json:"generatedAt"`
+	GeneratedAt  int64             `json:"generatedAt"`
 	Summary      string            `json:"summary"`
 	Breakdown    map[string]int    `json:"breakdown"`
 	Metrics      map[string]string `json:"metrics"`
@@ -157,6 +155,6 @@ type ReportSummary struct {
 	Mode         ConnectionMode `json:"mode"`
 	Score        int            `json:"score"`
 	Severity     Severity       `json:"severity"`
-	GeneratedAt  time.Time      `json:"generatedAt"`
+	GeneratedAt  int64          `json:"generatedAt"`
 	FindingCount int            `json:"findingCount"`
 }

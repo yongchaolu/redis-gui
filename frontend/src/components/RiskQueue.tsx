@@ -14,12 +14,12 @@ const tone: Record<Severity, {border: string; bg: string; text: string}> = {
 export function RiskQueue({findings}: Props) {
   return (
     <div className="min-w-0 rounded-lg p-3 sm:p-5" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
-      <h2 className="text-xl font-bold text-white">Risk Queue</h2>
+      <h2 className="text-xl font-bold text-white">风险队列</h2>
       <div className="mt-4 space-y-3">
         {findings.length === 0 && (
           <div className="rounded-lg p-4" style={{border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.1)'}}>
-            <div className="mb-1 text-sm font-bold text-emerald-400">Healthy - No Risks</div>
-            <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>No issues found in this sampling.</p>
+            <div className="mb-1 text-sm font-bold text-emerald-400">健康 - 无风险</div>
+            <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>本次采样未发现问题。</p>
           </div>
         )}
         {findings.map((item) => {
@@ -34,7 +34,7 @@ export function RiskQueue({findings}: Props) {
                 {item.severity.toUpperCase()} · {item.title}
               </div>
               <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>{item.evidence}</p>
-              <p className="mt-2 text-xs" style={{color: 'var(--color-text-secondary)'}}>Recommendation: {item.recommendation}</p>
+              <p className="mt-2 text-xs" style={{color: 'var(--color-text-secondary)'}}>建议: {item.recommendation}</p>
             </article>
           );
         })}

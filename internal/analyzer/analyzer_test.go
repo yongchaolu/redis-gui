@@ -12,7 +12,7 @@ func TestAnalyzeFlagsSlowQueriesBlockedClientsAndReplicationLag(t *testing.T) {
 	snapshot := model.SampleSnapshot{
 		ConnectionID: "conn-prod",
 		Mode:         model.ConnectionModeCluster,
-		SampledAt:    time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC),
+		SampledAt:    time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC).UnixNano(),
 		Nodes: []model.NodeSample{
 			{
 				Address: "127.0.0.1:7001",
@@ -58,7 +58,7 @@ func TestAnalyzeHealthySnapshotKeepsHighScore(t *testing.T) {
 	snapshot := model.SampleSnapshot{
 		ConnectionID: "conn-dev",
 		Mode:         model.ConnectionModeStandalone,
-		SampledAt:    time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC),
+		SampledAt:    time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC).UnixNano(),
 		Nodes: []model.NodeSample{{
 			Address: "127.0.0.1:6379",
 			Role:    "master",

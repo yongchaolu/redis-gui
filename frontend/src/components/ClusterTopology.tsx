@@ -10,8 +10,8 @@ export function ClusterTopology({cluster, nodes}: Props) {
     <div className="min-w-0 rounded-lg p-3 sm:p-5" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
       <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-xl font-bold text-white">Cluster Topology</h2>
-          <p className="mt-1 text-sm" style={{color: 'var(--color-text-secondary)'}}>Slots, master-slave relationships, node status</p>
+          <h2 className="text-xl font-bold text-white">集群拓扑</h2>
+          <p className="mt-1 text-sm" style={{color: 'var(--color-text-secondary)'}}>槽位、主从关系、节点状态</p>
         </div>
         <span className="w-fit rounded-full px-3 py-1 text-xs text-blue-400" style={{border: '1px solid rgba(59,130,246,0.3)', background: 'rgba(59,130,246,0.1)'}}>cluster</span>
       </div>
@@ -36,7 +36,7 @@ export function ClusterTopology({cluster, nodes}: Props) {
             >
               <div className="text-xs uppercase tracking-[.2em]" style={{color: 'var(--color-text-secondary)'}}>{node.role || 'node'}</div>
               <div className="mt-1 truncate font-bold" style={{color: node.error ? 'var(--color-redis-red)' : node.role === 'master' ? '#10b981' : 'white'}}>{node.address}</div>
-              <div className="mt-3 line-clamp-2 text-xs" style={{color: 'var(--color-text-secondary)'}}>{node.error ?? 'Sampling complete'}</div>
+              <div className="mt-3 line-clamp-2 text-xs" style={{color: 'var(--color-text-secondary)'}}>{node.error ?? '采样完成'}</div>
             </div>
           ))}
         </div>
@@ -48,7 +48,7 @@ export function ClusterTopology({cluster, nodes}: Props) {
               background: cluster.error ? 'rgba(220,38,38,0.1)' : 'rgba(245,158,11,0.1)',
             }}
           >
-            <div className="text-xs uppercase tracking-[.2em]" style={{color: cluster.error ? 'var(--color-redis-red)' : '#f59e0b'}}>Cluster</div>
+            <div className="text-xs uppercase tracking-[.2em]" style={{color: cluster.error ? 'var(--color-redis-red)' : '#f59e0b'}}>集群</div>
             <div className="mt-1 truncate text-sm text-white">
               {cluster.error ?? `state=${cluster.state} · slots=${cluster.slotsAssigned}/16384`}
             </div>

@@ -7,6 +7,16 @@ interface Props {
   counts: Record<string, number>;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  server: '服务器',
+  memory: '内存',
+  persistence: '持久化',
+  replication: '复制',
+  clients: '客户端',
+  security: '安全',
+  performance: '性能',
+};
+
 export function CategoryNav({categories, active, onSelect, counts}: Props) {
   return (
     <nav className="flex flex-col gap-0.5">
@@ -27,7 +37,7 @@ export function CategoryNav({categories, active, onSelect, counts}: Props) {
               : {color: 'var(--color-text-secondary)'}
             }
           >
-            <span className="capitalize">{cat}</span>
+            <span>{CATEGORY_LABELS[cat] ?? cat}</span>
             <span className="font-mono text-[10px]" style={{color: isActive ? 'var(--color-redis-red)' : 'var(--color-text-secondary)'}}>
               {counts[cat] ?? 0}
             </span>

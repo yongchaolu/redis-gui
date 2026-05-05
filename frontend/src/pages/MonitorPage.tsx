@@ -55,7 +55,7 @@ export function MonitorPage({connection}: Props) {
       {/* Large OPS Graph */}
       <Card className="h-64 flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-semibold text-white">Operations Per Second</h3>
+          <h3 className="text-sm font-semibold text-white">每秒操作数</h3>
           <div className="flex items-center gap-3">
             <div className="px-3 py-1 rounded font-mono" style={{background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.2)', color: 'var(--color-redis-red)'}}>
               {currentOPS.toLocaleString()} ops/s
@@ -65,7 +65,7 @@ export function MonitorPage({connection}: Props) {
               className={cn("px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider", running ? "text-emerald-400" : "text-yellow-400")}
               style={{background: running ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'}}
             >
-              {running ? 'LIVE' : 'PAUSED'}
+              {running ? '实时' : '已暂停'}
             </button>
           </div>
         </div>
@@ -86,7 +86,7 @@ export function MonitorPage({connection}: Props) {
           <div className="px-4 py-2 flex items-center justify-between" style={{background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)'}}>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full animate-pulse" style={{background: 'var(--color-redis-red)'}} />
-              <span className="font-mono text-[10px] uppercase tracking-widest font-bold">Slow Query Log</span>
+              <span className="font-mono text-[10px] uppercase tracking-widest font-bold">慢查询日志</span>
             </div>
             <div className="flex gap-2">
               <button onClick={() => setRunning(!running)} className="p-1 hover:text-white transition-colors" style={{color: 'var(--color-text-secondary)'}}>
@@ -112,8 +112,8 @@ export function MonitorPage({connection}: Props) {
             }) : (
               <div className="flex items-center justify-center h-full" style={{color: 'var(--color-text-secondary)'}}>
                 <div className="text-center">
-                  <p className="font-mono text-sm tracking-widest uppercase">Waiting for data...</p>
-                  <p className="text-[10px] mt-2 italic">Slow log entries will appear here</p>
+                  <p className="font-mono text-sm tracking-widest uppercase">等待数据...</p>
+                  <p className="text-[10px] mt-2 italic">慢查询日志将显示在此处</p>
                 </div>
               </div>
             )}
@@ -125,15 +125,15 @@ export function MonitorPage({connection}: Props) {
         <Card className="col-span-12 lg:col-span-4 p-0 overflow-hidden flex flex-col h-[500px]">
           <div className="px-4 py-3 flex items-center gap-2" style={{borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)'}}>
             <AlertTriangle className="w-4 h-4 text-yellow-500" />
-            <h2 className="text-xs font-bold uppercase tracking-widest">Slow Log Entry</h2>
+            <h2 className="text-xs font-bold uppercase tracking-widest">慢查询记录</h2>
           </div>
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left font-mono text-xs">
               <thead style={{background: 'var(--color-obsidian)'}}>
                 <tr style={{color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border)'}}>
                   <th className="px-4 py-2 text-[10px] uppercase">ID</th>
-                  <th className="px-4 py-2 text-[10px] uppercase">Dur</th>
-                  <th className="px-4 py-2 text-[10px] uppercase">Cmd</th>
+                  <th className="px-4 py-2 text-[10px] uppercase">耗时</th>
+                  <th className="px-4 py-2 text-[10px] uppercase">命令</th>
                 </tr>
               </thead>
               <tbody>
@@ -148,7 +148,7 @@ export function MonitorPage({connection}: Props) {
                   );
                 })}
                 {slowLog.length === 0 && (
-                  <tr><td colSpan={3} className="px-4 py-6 text-center" style={{color: 'var(--color-text-secondary)'}}>No slow log entries</td></tr>
+                  <tr><td colSpan={3} className="px-4 py-6 text-center" style={{color: 'var(--color-text-secondary)'}}>暂无慢查询记录</td></tr>
                 )}
               </tbody>
             </table>

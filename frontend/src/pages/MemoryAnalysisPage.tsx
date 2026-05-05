@@ -37,7 +37,7 @@ export function MemoryAnalysisPage({connection}: Props) {
   if (loading) {
     return (
       <div className="flex h-[400px] items-center justify-center">
-        <div className="animate-pulse font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>Analyzing memory...</div>
+        <div className="animate-pulse font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>正在分析内存...</div>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export function MemoryAnalysisPage({connection}: Props) {
       <div className="flex h-[400px] items-center justify-center">
         <div className="rounded-lg px-6 py-4 text-center" style={{border: '1px solid rgba(220,38,38,0.3)', background: 'rgba(220,38,38,0.1)'}}>
           <p className="text-sm" style={{color: 'var(--color-redis-red)'}}>{error}</p>
-          <button onClick={loadReport} className="mt-3 rounded-md px-3 py-1.5 text-xs" style={{border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)'}}>Retry</button>
+          <button onClick={loadReport} className="mt-3 rounded-md px-3 py-1.5 text-xs" style={{border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)'}}>重试</button>
         </div>
       </div>
     );
@@ -98,16 +98,16 @@ export function MemoryAnalysisPage({connection}: Props) {
     <div className="space-y-6">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-1">Memory Analysis</h2>
-          <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>Deep inspection of {usedMemoryHuman} total resident memory</p>
+          <h2 className="text-2xl font-bold text-white mb-1">内存分析</h2>
+          <p className="text-sm" style={{color: 'var(--color-text-secondary)'}}>深度检查 {usedMemoryHuman} 常驻内存</p>
         </div>
         <div className="flex gap-2">
           <Card className="py-2 px-4 flex items-center gap-4" style={{background: 'var(--color-surface)'}}>
-            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>FRAGMENTATION:</span>
+            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>碎片率:</span>
             <span className="text-[10px] font-mono font-bold text-emerald-400">{fragRatio}x</span>
           </Card>
           <Card className="py-2 px-4 flex items-center gap-4" style={{background: 'var(--color-surface)'}}>
-            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>EVICTION:</span>
+            <span className="text-[10px] font-mono" style={{color: 'var(--color-text-secondary)'}}>淘汰策略:</span>
             <span className="text-[10px] font-mono font-bold text-white uppercase">{maxmemoryPolicy}</span>
           </Card>
         </div>
@@ -116,8 +116,8 @@ export function MemoryAnalysisPage({connection}: Props) {
       <div className="grid grid-cols-12 gap-6">
         <Card className="col-span-12 lg:col-span-8 flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>Prefix Allocation</h3>
-            <Badge style={{background: 'var(--color-obsidian)', border: '1px solid var(--color-border)'}}>Logarithmic Scale</Badge>
+            <h3 className="text-xs font-mono uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>前缀分配</h3>
+            <Badge style={{background: 'var(--color-obsidian)', border: '1px solid var(--color-border)'}}>对数刻度</Badge>
           </div>
           {treemapData.length > 0 ? (
             <div className="grid grid-cols-6 grid-rows-3 gap-1 h-[320px] font-mono">
@@ -134,12 +134,12 @@ export function MemoryAnalysisPage({connection}: Props) {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[320px] font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>No big keys data available</div>
+            <div className="flex items-center justify-center h-[320px] font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>暂无大 Key 数据</div>
           )}
         </Card>
 
         <Card className="col-span-12 lg:col-span-4 flex flex-col">
-          <h3 className="text-xs font-mono uppercase tracking-widest mb-6" style={{color: 'var(--color-text-secondary)'}}>Type Distribution</h3>
+          <h3 className="text-xs font-mono uppercase tracking-widest mb-6" style={{color: 'var(--color-text-secondary)'}}>类型分布</h3>
           {typeDistribution.length > 0 ? (
             <div className="space-y-6 flex-grow">
               {typeDistribution.map((item) => (
@@ -155,7 +155,7 @@ export function MemoryAnalysisPage({connection}: Props) {
               ))}
             </div>
           ) : (
-            <div className="flex-grow flex items-center justify-center font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>No data</div>
+            <div className="flex-grow flex items-center justify-center font-mono text-sm" style={{color: 'var(--color-text-secondary)'}}>暂无数据</div>
           )}
           <div className="mt-8 pt-4" style={{borderTop: '1px solid rgba(51,65,85,0.3)'}}>
             <button
@@ -174,7 +174,7 @@ export function MemoryAnalysisPage({connection}: Props) {
               }}
               className="w-full text-center font-mono text-blue-400 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
             >
-              Download CSV Report
+              下载 CSV 报告
             </button>
           </div>
         </Card>
@@ -184,15 +184,15 @@ export function MemoryAnalysisPage({connection}: Props) {
         <div className="p-4 flex justify-between items-center" style={{borderBottom: '1px solid var(--color-border)', background: 'rgba(45,55,72,0.3)'}}>
           <div className="flex items-center gap-3">
             <AlertCircle className="w-4 h-4" style={{color: 'var(--color-redis-red)'}} />
-            <h3 className="text-sm font-semibold text-white">Big Keys Report</h3>
+            <h3 className="text-sm font-semibold text-white">大 Key 报告</h3>
           </div>
           <div className="flex gap-2">
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2" style={{color: 'var(--color-text-secondary)'}} />
-              <input className="rounded px-3 py-1.5 pl-9 text-xs outline-none w-48" style={{background: 'var(--color-obsidian)', border: '1px solid var(--color-border)'}} placeholder="Filter by pattern..." value={search} onChange={(e) => setSearch(e.target.value)} />
+              <input className="rounded px-3 py-1.5 pl-9 text-xs outline-none w-48" style={{background: 'var(--color-obsidian)', border: '1px solid var(--color-border)'}} placeholder="按模式过滤..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <button onClick={() => setSortBySize(!sortBySize)} className="flex items-center gap-2 rounded px-3 py-1.5 text-[10px] font-mono transition-colors" style={{background: 'var(--color-surface)', border: '1px solid var(--color-border)'}}>
-              <Filter className="w-3.5 h-3.5" /> SORT BY {sortBySize ? 'SIZE' : 'LENGTH'}
+              <Filter className="w-3.5 h-3.5" /> {sortBySize ? '按大小排序' : '按长度排序'}
             </button>
           </div>
         </div>
@@ -200,12 +200,12 @@ export function MemoryAnalysisPage({connection}: Props) {
           <table className="w-full text-left font-mono text-sm">
             <thead style={{background: 'var(--color-obsidian)', color: 'var(--color-text-secondary)'}}>
               <tr className="uppercase text-[10px] tracking-widest" style={{borderBottom: '1px solid var(--color-border)'}}>
-                <th className="p-4">Key Name</th>
-                <th className="p-4">Type</th>
-                <th className="p-4 text-right">Elements</th>
-                <th className="p-4 text-right">Size</th>
+                <th className="p-4">Key 名称</th>
+                <th className="p-4">类型</th>
+                <th className="p-4 text-right">元素数</th>
+                <th className="p-4 text-right">大小</th>
                 <th className="p-4 text-right">TTL</th>
-                <th className="p-4 text-center">Actions</th>
+                <th className="p-4 text-center">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -215,17 +215,17 @@ export function MemoryAnalysisPage({connection}: Props) {
                   <td className="p-4"><Badge style={{background: 'var(--color-surface-hover)', color: 'white'}}>{key.type}</Badge></td>
                   <td className="p-4 text-right" style={{color: 'var(--color-text-secondary)'}}>{key.length.toLocaleString()}</td>
                   <td className={cn("p-4 text-right font-bold", key.size > 10 * 1024 * 1024 ? 'text-red-500' : 'text-yellow-500')}>{formatBytes(key.size)}</td>
-                  <td className="p-4 text-right font-mono" style={{color: 'var(--color-text-secondary)'}}>{key.ttl > 0 ? formatTTL(key.ttl) : 'Persistent'}</td>
+                  <td className="p-4 text-right font-mono" style={{color: 'var(--color-text-secondary)'}}>{key.ttl > 0 ? formatTTL(key.ttl) : '永久'}</td>
                   <td className="p-4">
                     <div className="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => { navigator.clipboard.writeText(key.name); showToast(`Key name copied: ${key.name}`, 'info'); }} className="p-1 hover:text-white" style={{color: 'var(--color-text-secondary)'}}><Eye className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => showToast('Read-only mode, deletion is not supported', 'info')} className="p-1 hover:text-red-500" style={{color: 'var(--color-text-secondary)'}}><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => { navigator.clipboard.writeText(key.name); showToast(`已复制 Key 名称: ${key.name}`, 'info'); }} className="p-1 hover:text-white" style={{color: 'var(--color-text-secondary)'}}><Eye className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => showToast('只读模式，不支持删除操作', 'info')} className="p-1 hover:text-red-500" style={{color: 'var(--color-text-secondary)'}}><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </td>
                 </tr>
               ))}
               {filteredKeys.length === 0 && (
-                <tr><td colSpan={6} className="p-6 text-center" style={{color: 'var(--color-text-secondary)'}}>No big keys found</td></tr>
+                <tr><td colSpan={6} className="p-6 text-center" style={{color: 'var(--color-text-secondary)'}}>未发现大 Key</td></tr>
               )}
             </tbody>
           </table>

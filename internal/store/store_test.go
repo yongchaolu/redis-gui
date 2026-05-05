@@ -55,7 +55,7 @@ func TestStoreEncryptsPasswordsAndRoundTripsReports(t *testing.T) {
 		Mode:         saved.Mode,
 		Score:        88,
 		Severity:     model.SeverityLow,
-		GeneratedAt:  time.Date(2026, 5, 1, 11, 0, 0, 0, time.UTC),
+		GeneratedAt:  time.Date(2026, 5, 1, 11, 0, 0, 0, time.UTC).UnixNano(),
 		Findings:     []model.RiskFinding{{Category: "slow_query", Title: "慢查询"}},
 	}
 	if err := db.SaveReport(report); err != nil {

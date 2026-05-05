@@ -9,10 +9,10 @@ const COLORS = ['text-red-400', 'text-blue-400', 'text-green-400', 'text-yellow-
 
 export function ConfigSummaryCards({info}: Props) {
   const cards = [
-    {label: 'Memory', value: info['used_memory_human'] ?? '-', sub: `Peak: ${info['used_memory_peak_human'] ?? '-'}`},
-    {label: 'Clients', value: info['connected_clients'] ?? '-', sub: `Max: ${info['maxclients'] ?? '-'}`},
-    {label: 'CPU', value: `${(parseFloat(info['used_cpu_sys'] ?? '0') + parseFloat(info['used_cpu_user'] ?? '0')).toFixed(2)}s`, sub: `Sys: ${info['used_cpu_sys'] ?? '-'} / User: ${info['used_cpu_user'] ?? '-'}`},
-    {label: 'Health', value: info['redis_version'] ?? '-', sub: `Uptime: ${formatUptime(parseInt(info['uptime_in_seconds'] ?? '0', 10))}`},
+    {label: '内存', value: info['used_memory_human'] ?? '-', sub: `峰值: ${info['used_memory_peak_human'] ?? '-'}`},
+    {label: '客户端', value: info['connected_clients'] ?? '-', sub: `最大: ${info['maxclients'] ?? '-'}`},
+    {label: 'CPU', value: `${(parseFloat(info['used_cpu_sys'] ?? '0') + parseFloat(info['used_cpu_user'] ?? '0')).toFixed(2)}s`, sub: `系统: ${info['used_cpu_sys'] ?? '-'} / 用户: ${info['used_cpu_user'] ?? '-'}`},
+    {label: '健康', value: info['redis_version'] ?? '-', sub: `运行时间: ${formatUptime(parseInt(info['uptime_in_seconds'] ?? '0', 10))}`},
   ];
 
   return (

@@ -14,12 +14,12 @@ import {motion, AnimatePresence} from 'motion/react';
 type PageKey = 'connections' | 'detail' | 'monitor' | 'memory' | 'config' | 'reports';
 
 const NAV_ITEMS = [
-  {id: 'detail' as PageKey, label: 'Overview', icon: LayoutDashboard},
-  {id: 'monitor' as PageKey, label: 'Real-time Monitor', icon: Activity},
-  {id: 'memory' as PageKey, label: 'Memory Analysis', icon: Layers},
-  {id: 'config' as PageKey, label: 'Configuration', icon: Settings},
-  {id: 'reports' as PageKey, label: 'Reports', icon: FileText},
-  {id: 'connections' as PageKey, label: 'Connections', icon: Plug},
+  {id: 'detail' as PageKey, label: '总览', icon: LayoutDashboard},
+  {id: 'monitor' as PageKey, label: '实时监控', icon: Activity},
+  {id: 'memory' as PageKey, label: '内存分析', icon: Layers},
+  {id: 'config' as PageKey, label: '配置管理', icon: Settings},
+  {id: 'reports' as PageKey, label: '历史报告', icon: FileText},
+  {id: 'connections' as PageKey, label: '连接管理', icon: Plug},
 ];
 
 export default function App() {
@@ -141,7 +141,7 @@ export default function App() {
               {selectedConnection ? selectedConnection.name.slice(0, 2).toUpperCase() : '--'}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-white truncate">{selectedConnection?.name ?? 'No Connection'}</p>
+              <p className="text-xs font-bold text-white truncate">{selectedConnection?.name ?? '未连接'}</p>
               <p className="text-[10px] truncate font-mono" style={{color: 'var(--color-text-secondary)'}}>{connAddr}</p>
             </div>
             {selectedConnection && (
@@ -159,12 +159,12 @@ export default function App() {
           style={{borderBottom: '1px solid var(--color-border)', background: 'rgba(30,41,59,0.95)', backdropFilter: 'blur(8px)'}}
         >
           <div className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-widest" style={{color: 'var(--color-text-secondary)'}}>
-            <span className="font-bold animate-pulse" style={{color: 'var(--color-redis-red)'}}>Redis Performance Monitor</span>
+            <span className="font-bold animate-pulse" style={{color: 'var(--color-redis-red)'}}>Redis 性能监控</span>
             {selectedConnection && (
               <div className="flex gap-4 pl-4" style={{borderLeft: '1px solid var(--color-border)'}}>
                 <span>{connAddr}</span>
                 <span>v{redisVersion}</span>
-                <span className="text-white font-bold">Up: {formatUptime(uptimeSeconds)}</span>
+                <span className="text-white font-bold">运行: {formatUptime(uptimeSeconds)}</span>
               </div>
             )}
           </div>
@@ -195,7 +195,7 @@ export default function App() {
                   className="px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest text-white transition-all active:scale-95 hover:brightness-110"
                   style={{background: 'var(--color-redis-red)'}}
                 >
-                  Disconnect
+                  断开连接
                 </button>
               </>
             )}
@@ -252,8 +252,8 @@ export default function App() {
               {page !== 'connections' && !selectedConnection && (
                 <div className="flex flex-col items-center justify-center min-h-[400px]" style={{color: 'var(--color-text-secondary)'}}>
                   <Database className="w-12 h-12 mb-4 opacity-20" />
-                  <p className="font-mono text-sm tracking-widest uppercase">No connection selected</p>
-                  <p className="text-[10px] mt-2 italic">Please connect to a Redis instance first</p>
+                  <p className="font-mono text-sm tracking-widest uppercase">未选择连接</p>
+                  <p className="text-[10px] mt-2 italic">请先连接到 Redis 实例</p>
                 </div>
               )}
             </motion.div>
